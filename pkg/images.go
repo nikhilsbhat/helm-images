@@ -1,0 +1,127 @@
+package pkg
+
+import (
+	"fmt"
+	"io/fs"
+	"os"
+	"os/exec"
+	"strings"
+
+	"github.com/ghodss/yaml"
+	"github.com/spf13/cobra"
+)
+
+const (
+	getArgumentCount = 2
+)
+
+type Images struct {
+	Registries   []string
+	Kind         []string
+	Values       []string
+	StringValues []string
+	FileValues   []string
+	ValueFiles   ValueFiles
+	release      string
+	chart        string
+}
+
+func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
+
+	if err := image.getReleaseNChart(args); err != nil {
+		return err
+	}
+
+	chart, err := image.getChartTemplate()
+	if err != nil {
+		return err
+	}
+
+	selectedKinds := make([]map[string]interface{}, 0)
+	images := make([]string, 0)
+	kubeKindTemplates := getTemplates(chart)
+	for _, kubeKindTemplate := range kubeKindTemplates {
+		var kindYaml map[string]interface{}
+		if err := yaml.Unmarshal([]byte(kubeKindTemplate), &kindYaml); err != nil {
+			return err
+		}
+		if len(image.Kind) != 0 {
+			if find(image.Kind, kindYaml["kind"].(string)) {
+				selectedKinds = append(selectedKinds, kindYaml)
+			}
+		} else {
+			selectedKinds = append(selectedKinds, kindYaml)
+		}
+	}
+
+	for _, selectedKind := range selectedKinds {
+		if foundImage, ok := findKey(selectedKind, "image"); ok {
+			images = append(images, foundImage.(string))
+		}
+	}
+
+	filteredImages := image.filterImages(images)
+	for _, img := range filteredImages {
+		fmt.Printf("%v\n", img)
+	}
+	return nil
+}
+
+func (image *Images) getChartTemplate() ([]byte, error) {
+	flags := make([]string, 0)
+	for _, value := range image.Values {
+		flags = append(flags, "--set", value)
+	}
+	for _, stringValue := range image.StringValues {
+		flags = append(flags, "--set-string", stringValue)
+	}
+	for _, fileValue := range image.FileValues {
+		flags = append(flags, "--set-file", fileValue)
+	}
+	for _, valueFile := range image.ValueFiles {
+		flags = append(flags, "--values", valueFile)
+	}
+
+	args := []string{"template", image.release, image.chart}
+	args = append(args, flags...)
+
+	cmd := exec.Command(os.Getenv("HELM_BIN"), args...) //nolint:gosec
+	output, err := cmd.Output()
+	if exitError, ok := err.(*exec.ExitError); ok {
+		return nil, fmt.Errorf("%s: %s", exitError.Error(), string(exitError.Stderr))
+	}
+	if pathError, ok := err.(*fs.PathError); ok {
+		return nil, fmt.Errorf("%s: %s", pathError.Error(), pathError.Path)
+	}
+	return output, nil
+}
+
+func (image *Images) getReleaseNChart(args []string) error {
+	if len(args) != getArgumentCount {
+		return fmt.Errorf("[RELEASE] or [CHART] cannot be empty")
+	}
+	image.release = args[0]
+	image.chart = args[1]
+	return nil
+}
+
+func getTemplates(template []byte) []string {
+	kinds := strings.Split(strings.ReplaceAll(string(template), "\r", ""), "---")
+	kinds = kinds[1:]
+	return kinds
+}
+
+func (image *Images) filterImages(images []string) (filteredImages []string) {
+	if len(image.Registries) == 0 {
+		return images
+	}
+	for _, registry := range image.Registries {
+		for _, img := range images {
+			if strings.HasPrefix(img, registry) {
+				filteredImages = append(filteredImages, img)
+			}
+		}
+	}
+	return
+}
