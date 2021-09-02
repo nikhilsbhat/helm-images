@@ -28,11 +28,13 @@ function download_plugin() {
 
 function install_plugin() {
   local HELM_PLUGIN_ARTIFACT_PATH=$1
-  #  echo "HELM_PLUGIN_ARTIFACT_PATH: $HELM_PLUGIN_ARTIFACT_PATH"
+  local PROJECT_NAME="helm-images"
+  local HELM_PLUGIN_TEMP_PATH="/tmp/$PROJECT_NAME"
+
   echo "Preparing to install into ${HELM_PLUGIN_DIR}"
-  mkdir -p "$HELM_PLUGIN_DIR/helm-images/bin"
-  unzip "$HELM_PLUGIN_ARTIFACT_PATH" -d "$HELM_PLUGIN_DIR"helm-images
-  mv "$HELM_PLUGIN_DIR"helm-images/helm-images "$HELM_PLUGIN_DIR"helm-images/bin
+  mkdir -p "$HELM_PLUGIN_TEMP_PATH"
+  unzip "$HELM_PLUGIN_ARTIFACT_PATH" -d "$HELM_PLUGIN_TEMP_PATH"
+  mv "$HELM_PLUGIN_TEMP_PATH"/helm-images "$HELM_PLUGIN_DIR"/bin
   rm -rf "$HELM_PLUGIN_ARTIFACT_PATH"
 }
 
