@@ -15,7 +15,7 @@ builds:
       - -s -w -X github.com/nikhilsbhat/helm-images/version.Version={{.Version}} -X github.com/nikhilsbhat/helm-images/version.Env={{.Env.BUILD_ENVIRONMENT}} -X github.com/nikhilsbhat/helm-images/version.BuildDate={{.Date}} -X github.com/nikhilsbhat/helm-images/version.Revision={{.Commit}} -X github.com/nikhilsbhat/helm-images/version.GoVersion={{.Env.GOVERSION}} -X github.com/nikhilsbhat/helm-images/version.Platform={{ .Os }}/{{ .Arch }}
 
 archives:
-  - format: tar.gz
+  - format: zip
     replacements:
       darwin: Darwin
       linux: Linux
