@@ -31,7 +31,7 @@ function install_plugin() {
   #  echo "HELM_PLUGIN_ARTIFACT_PATH: $HELM_PLUGIN_ARTIFACT_PATH"
   echo "Preparing to install into ${HELM_PLUGIN_DIR}"
   mkdir -p "$HELM_PLUGIN_DIR/helm-images/bin"
-  tar -xvf "$HELM_PLUGIN_ARTIFACT_PATH" -C "$HELM_PLUGIN_DIR"helm-images
+  unzip "$HELM_PLUGIN_ARTIFACT_PATH" -d "$HELM_PLUGIN_DIR"helm-images
   mv "$HELM_PLUGIN_DIR"helm-images/helm-images "$HELM_PLUGIN_DIR"helm-images/bin
   rm -rf "$HELM_PLUGIN_ARTIFACT_PATH"
 }
