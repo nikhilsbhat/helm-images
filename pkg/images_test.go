@@ -32,7 +32,11 @@ func TestImages_filterImages(t *testing.T) {
 }
 
 func Test_getImages(t *testing.T) {
-	helmTemplate := `---
+	imageClient := Images{
+		ImageRegex: ImageRegex,
+	}
+	helmTemplate := `
+---
 # Source: prometheus/charts/prometheus/templates/alertmanager/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -78,40 +82,35 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: prometheus-standalone-kube-state-metrics
-  namespace: test`
+  namespace: test
+---
+# Source: tracing/templates/jaeger/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-ca-cert
+data:
+    CA_CERTIFICATE: |
+        -----BEGIN CERTIFICATE-----
+        MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE
+        MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE
+        MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE
+		MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE
+		MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE
+		MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE
+		MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE
+		MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE
+        -----END CERTIFICATE-----
+`
+
 	t.Run("", func(t *testing.T) {
 		expected := []string{
-			"\n# Source: prometheus/charts/prometheus/templates/alertmanager/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    component: \"alertmanager\"\n    app: prometheus\n    release: prometheus-standalone\n    chart: prometheus-14.4.1\n    heritage: Helm\n  name: prometheus-standalone-alertmanager\nrules:\n  []\n",                                                                                                                                                                                                                                                                                                  //nolint:lll
-			"\n# Source: prometheus/charts/prometheus/templates/pushgateway/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    component: \"pushgateway\"\n    app: prometheus\n    release: prometheus-standalone\n    chart: prometheus-14.4.1\n    heritage: Helm\n  name: prometheus-standalone-pushgateway\nrules:\n  []\n",                                                                                                                                                                                                                                                                                                     //nolint:lll
-			"\n# Source: prometheus/charts/prometheus/charts/kube-state-metrics/templates/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: kube-state-metrics\n    helm.sh/chart: kube-state-metrics-3.1.1\n    app.kubernetes.io/managed-by: Helm\n    app.kubernetes.io/instance: prometheus-standalone\n  name: prometheus-standalone-kube-state-metrics\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: prometheus-standalone-kube-state-metrics\nsubjects:\n- kind: ServiceAccount\n  name: prometheus-standalone-kube-state-metrics\n  namespace: test", //nolint:lll
+			"\n# Source: prometheus/charts/prometheus/templates/alertmanager/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    component: \"alertmanager\"\n    app: prometheus\n    release: prometheus-standalone\n    chart: prometheus-14.4.1\n    heritage: Helm\n  name: prometheus-standalone-alertmanager\nrules:\n  []\n",                                                                                                                                                                                                                                                                                                                                                                                                                                                 //nolint:lll
+			"\n# Source: prometheus/charts/prometheus/templates/pushgateway/clusterrole.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    component: \"pushgateway\"\n    app: prometheus\n    release: prometheus-standalone\n    chart: prometheus-14.4.1\n    heritage: Helm\n  name: prometheus-standalone-pushgateway\nrules:\n  []\n",                                                                                                                                                                                                                                                                                                                                                                                                                                                    //nolint:lll
+			"\n# Source: prometheus/charts/prometheus/charts/kube-state-metrics/templates/clusterrolebinding.yaml\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: kube-state-metrics\n    helm.sh/chart: kube-state-metrics-3.1.1\n    app.kubernetes.io/managed-by: Helm\n    app.kubernetes.io/instance: prometheus-standalone\n  name: prometheus-standalone-kube-state-metrics\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: prometheus-standalone-kube-state-metrics\nsubjects:\n- kind: ServiceAccount\n  name: prometheus-standalone-kube-state-metrics\n  namespace: test",                                                                                                                                                //nolint:lll
+			"\n# Source: tracing/templates/jaeger/configmap.yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: jaeger-ca-cert\ndata:\n    CA_CERTIFICATE: |\n        -----BEGIN CERTIFICATE-----\n        MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE\n        MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE\n        MIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE\n\t\tMIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE\n\t\tMIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE\n\t\tMIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE\n\t\tMIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE\n\t\tMIIDiDCCAnCgAwIBAgIQTRMjTzcENaBHvV2drg131TANBgkqhkiG9w0BAQsFADBE\n        -----END CERTIFICATE-----\n", //nolint:lll
 		}
-		actual := getTemplates([]byte(helmTemplate))
+		actual := imageClient.getTemplates([]byte(helmTemplate))
 		assert.ElementsMatch(t, expected, actual)
-	})
-}
-
-func TestImages_getReleaseNChart(t *testing.T) {
-	t.Run("should be able to fetch release and chart from the arguments passed", func(t *testing.T) {
-		imageClient := Images{
-			Registries: []string{"quay.io", "k8s.gcr.io"},
-		}
-
-		expected := Images{
-			Registries: []string{"quay.io", "k8s.gcr.io"},
-			release:    "test-chart",
-			chart:      "path/to/chart",
-		}
-
-		err := imageClient.getReleaseNChart([]string{"test-chart", "path/to/chart"})
-		assert.Nil(t, err)
-		assert.Equal(t, expected, imageClient)
-	})
-	t.Run("should error out with missing argument", func(t *testing.T) {
-		imageClient := Images{
-			Registries: []string{"quay.io", "k8s.gcr.io"},
-		}
-
-		err := imageClient.getReleaseNChart([]string{"test-chart"})
-		assert.EqualError(t, err, "[RELEASE] or [CHART] cannot be empty")
 	})
 }

@@ -46,9 +46,10 @@ func getImagesCommnd() *cobra.Command {
 		Use:   "get [RELEASE] [CHART] [flags]",
 		Short: "Fetches all images part of deployment",
 		Long:  "Lists all images that matches the pattern or part of specified registry.",
-		Args:  cobra.MinimumNArgs(1),
+		Args:  minimumArgError,
 		RunE:  images.GetImages,
 	}
+	registerGetFlags(imageCommand)
 	return imageCommand
 }
 
@@ -85,6 +86,15 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 	fmt.Println("terragen version:", string(buildInfo))
+	return nil
+}
+
+func minimumArgError(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
+	if len(args) != pkg.GetArgumentCount {
+		log.Println("[RELEASE] or [CHART] cannot be empty")
+		return fmt.Errorf("[RELEASE] or [CHART] cannot be empty")
+	}
 	return nil
 }
 

@@ -3,8 +3,10 @@ package pkg
 import (
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -12,7 +14,8 @@ import (
 )
 
 const (
-	getArgumentCount = 2
+	GetArgumentCount = 2
+	ImageRegex       = `---\n# Source:\s.*.`
 )
 
 type Images struct {
@@ -21,17 +24,21 @@ type Images struct {
 	Values       []string
 	StringValues []string
 	FileValues   []string
+	ImageRegex   string
 	ValueFiles   ValueFiles
 	release      string
 	chart        string
 }
 
+func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
+
 func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 	cmd.SilenceUsage = true
 
-	if err := image.getReleaseNChart(args); err != nil {
-		return err
-	}
+	image.release = args[0]
+	image.chart = args[1]
 
 	chart, err := image.getChartTemplate()
 	if err != nil {
@@ -40,7 +47,7 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 
 	selectedKinds := make([]map[string]interface{}, 0)
 	images := make([]string, 0)
-	kubeKindTemplates := getTemplates(chart)
+	kubeKindTemplates := image.getTemplates(chart)
 	for _, kubeKindTemplate := range kubeKindTemplates {
 		var kindYaml map[string]interface{}
 		if err := yaml.Unmarshal([]byte(kubeKindTemplate), &kindYaml); err != nil {
@@ -97,17 +104,10 @@ func (image *Images) getChartTemplate() ([]byte, error) {
 	return output, nil
 }
 
-func (image *Images) getReleaseNChart(args []string) error {
-	if len(args) != getArgumentCount {
-		return fmt.Errorf("[RELEASE] or [CHART] cannot be empty")
-	}
-	image.release = args[0]
-	image.chart = args[1]
-	return nil
-}
-
-func getTemplates(template []byte) []string {
-	kinds := strings.Split(strings.ReplaceAll(string(template), "\r", ""), "---")
+func (image *Images) getTemplates(template []byte) []string {
+	temp := regexp.MustCompile(image.ImageRegex)
+	kinds := temp.Split(string(template), -1)
+	// Removing empty string at the beginning as splitting string always adds it in front.
 	kinds = kinds[1:]
 	return kinds
 }

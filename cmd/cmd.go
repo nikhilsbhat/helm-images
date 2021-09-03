@@ -13,6 +13,7 @@ var (
 
 func init() {
 	cmd = SetImagesCommands()
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
 // Main will take the workload of executing/starting the cli, when the command is passed to it.
