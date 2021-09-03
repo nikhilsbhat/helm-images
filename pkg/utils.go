@@ -79,3 +79,13 @@ func findKey(obj interface{}, key string) (interface{}, bool) {
 
 	return nil, false
 }
+
+func getUniqueSlice(slice []string) []string {
+	for slc := 0; slc < len(slice); slc++ {
+		if find(slice[slc+1:], slice[slc]) {
+			slice = append(slice[:slc], slice[slc+1:]...)
+			slc--
+		}
+	}
+	return slice
+}

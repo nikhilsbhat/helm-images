@@ -75,3 +75,12 @@ func Test_findKey(t *testing.T) {
 		assert.Nil(t, actual)
 	})
 }
+
+func Test_getUniqueSlice(t *testing.T) {
+	t.Run("should remove duplicates from the list", func(t *testing.T) {
+		slice := []string{"one", "two", "three", "three", "one", "four"}
+		expected := []string{"one", "two", "three", "four"}
+		actual := getUniqueSlice(slice)
+		assert.ElementsMatch(t, expected, actual)
+	})
+}

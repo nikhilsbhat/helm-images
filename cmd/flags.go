@@ -23,5 +23,8 @@ func registerGetFlags(cmd *cobra.Command) {
 		"registry name (docker images belonging to this registry)")
 	cmd.PersistentFlags().StringSliceVarP(&images.Kind, "kind", "k", nil,
 		"kubernetes app kind to fetch the images from (if not specified all kinds are considered)")
-	cmd.PersistentFlags().StringVarP(&images.ImageRegex, "image-regex", "", pkg.ImageRegex, "regex used to split helm template rendered")
+	cmd.PersistentFlags().StringVarP(&images.ImageRegex, "image-regex", "", pkg.ImageRegex,
+		"regex used to split helm template rendered")
+	cmd.PersistentFlags().BoolVarP(&images.UniqueImages, "unique", "u", false,
+		"enable the flag if duplicates to be removed from the images that are retrieved (disabled by default)")
 }

@@ -42,7 +42,7 @@ local.run: local.build ## Generates the artifact and start the service in the cu
 publish: local.check ## Builds and publishes the app
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --rm-dist
 
-mock.publish: local.check ## Builds and publishes the app
+mock.publish: local.check ## Builds and mocks app release
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --skip-publish --rm-dist
 
 lint: ## Lint's application for errors, it is a linters aggregator (https://github.com/golangci/golangci-lint).

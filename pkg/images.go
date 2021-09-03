@@ -26,6 +26,7 @@ type Images struct {
 	FileValues   []string
 	ImageRegex   string
 	ValueFiles   ValueFiles
+	UniqueImages bool
 	release      string
 	chart        string
 }
@@ -69,6 +70,11 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 	}
 
 	filteredImages := image.filterImages(images)
+
+	if image.UniqueImages {
+		filteredImages = getUniqueSlice(filteredImages)
+	}
+
 	for _, img := range filteredImages {
 		fmt.Printf("%v\n", img)
 	}
