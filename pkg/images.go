@@ -14,10 +14,12 @@ import (
 )
 
 const (
-	GetArgumentCount = 2
-	ImageRegex       = `---\n# Source:\s.*.`
+	// ImageRegex is the default regex, that is used to split one big helm template to multiple templates.
+	// Splitting templates eases the task of  identifying Kubernetes objects.
+	ImageRegex = `---\n# Source:\s.*.`
 )
 
+// Images represents GetImages.
 type Images struct {
 	Registries   []string
 	Kind         []string
@@ -35,6 +37,8 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 }
 
+// GetImages fetches all available images from the specified chart.
+// Also filters identified images, to get just unique ones.
 func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 	cmd.SilenceUsage = true
 

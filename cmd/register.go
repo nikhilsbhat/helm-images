@@ -15,6 +15,10 @@ var (
 	images = pkg.Images{}
 )
 
+const (
+	getArgumentCount = 2
+)
+
 type imagesCommands struct {
 	commands []*cobra.Command
 }
@@ -91,7 +95,7 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 
 func minimumArgError(cmd *cobra.Command, args []string) error {
 	cmd.SilenceUsage = true
-	if len(args) != pkg.GetArgumentCount {
+	if len(args) != getArgumentCount {
 		log.Println("[RELEASE] or [CHART] cannot be empty")
 		return fmt.Errorf("[RELEASE] or [CHART] cannot be empty")
 	}

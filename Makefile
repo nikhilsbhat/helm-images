@@ -49,7 +49,7 @@ lint: ## Lint's application for errors, it is a linters aggregator (https://gith
 	if [ -z "${DEV}" ]; then golangci-lint run --color always ; else docker run --rm -v $(APP_DIR):/app -w /app golangci/golangci-lint:v1.31-alpine golangci-lint run --color always ; fi
 
 report: ## Publishes the go-report of the appliction (uses go-reportcard)
-	if [ -z "${DEV}" ]; then goreportcard-cli -v ; else docker run --rm -v $(APP_DIR):/app -w /app basnik/goreportcard-cli:latest goreportcard-cli -v ; fi
+	if [ -z "${DEV}" ]; then goreportcard -v ; else docker run --rm -v $(APP_DIR):/app -w /app basnik/goreportcard-cli:latest goreportcard-cli -v ; fi
 
 dev.prerequisite.up: ## Sets up the development environment with all necessary components.
 	$(APP_DIR)/scripts/prerequisite.sh
