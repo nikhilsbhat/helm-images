@@ -85,7 +85,7 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 		log.Fatalf("fetching version of helm-images failed with: %v", err)
 		os.Exit(1)
 	}
-	fmt.Println("terragen version:", string(buildInfo))
+	fmt.Println("images version:", string(buildInfo))
 	return nil
 }
 
