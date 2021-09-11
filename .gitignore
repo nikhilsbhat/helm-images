@@ -2,3 +2,4 @@
 /vendor
 helm-images
 /dist
+cover.out

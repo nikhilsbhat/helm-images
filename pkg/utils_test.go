@@ -35,7 +35,7 @@ func Test_findKey(t *testing.T) {
 				"command":         "/opt/bats/bin/bats -t /tests/run.sh",
 				"image":           "bats/bats:v1.1.0",
 				"imagePullPolicy": "IfNotPresent",
-				"name":            "/Users/nikhil.bhat/idfc/grafana-helm-test",
+				"name":            "/Users/nikhil.bhat/grafana-helm-test",
 				"volumeMounts": map[string]interface{}{
 					"mountPath": "/tests",
 					"name":      "tests",
@@ -61,7 +61,7 @@ func Test_findKey(t *testing.T) {
 			"spec": map[string]interface{}{
 				"command":         "/opt/bats/bin/bats -t /tests/run.sh",
 				"imagePullPolicy": "IfNotPresent",
-				"name":            "/Users/nikhil.bhat/idfc/grafana-helm-test",
+				"name":            "/Users/nikhil.bhat/grafana-helm-test",
 				"volumeMounts": map[string]interface{}{
 					"mountPath": "/tests",
 					"name":      "tests",

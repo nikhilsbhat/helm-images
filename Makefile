@@ -61,3 +61,6 @@ install.hooks: ## install pre-push hooks for the repository.
 
 generate.mock: ## generates mocks for the selected source packages.
 	@go generate ${SRC_PACKAGES}
+
+test: ## runs test cases
+	go test ./... -mod=vendor -coverprofile cover.out
