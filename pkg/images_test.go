@@ -8,26 +8,41 @@ import (
 
 func TestImages_filterImages(t *testing.T) {
 	t.Run("should be able to return the filtered image list", func(t *testing.T) {
-		imageList := []string{
-			"quay.io/prometheus/node-exporter:v1.1.2",
-			"quay.io/prometheus/alertmanager:v0.21.0",
-			"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
-			"prom/pushgateway:v1.3.1",
-			"jimmidyson/configmap-reload:v0.5.0",
+		imageList := []kind{
+			{
+				Image: "quay.io/prometheus/node-exporter:v1.1.2",
+			},
+			{
+				Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+			},
+			{
+				Image: "quay.io/prometheus/alertmanager:v0.21.0",
+			},
+			{
+				Image: "prom/pushgateway:v1.3.1",
+			},
+			{
+				Image: "jimmidyson/configmap-reload:v0.5.0",
+			},
 		}
 
 		imageClient := Images{
 			Registries: []string{"quay.io", "k8s.gcr.io"},
 		}
 
-		expected := []string{
-			"quay.io/prometheus/node-exporter:v1.1.2",
-			"quay.io/prometheus/alertmanager:v0.21.0",
-			"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+		expected := []kind{
+			{
+				Image: "quay.io/prometheus/node-exporter:v1.1.2",
+			},
+			{
+				Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+			},
+			{
+				Image: "quay.io/prometheus/alertmanager:v0.21.0",
+			},
 		}
-
 		filteredImages := imageClient.filterImages(imageList)
-		assert.Equal(t, expected, filteredImages)
+		assert.ElementsMatch(t, expected, filteredImages)
 	})
 }
 
@@ -114,5 +129,19 @@ data:
 		}
 		actual := imageClient.getTemplates([]byte(helmTemplate))
 		assert.ElementsMatch(t, expected, actual)
+	})
+}
+
+func Test_getImagesFromKind(t *testing.T) {
+	t.Run("should be able to get all images from struct kind", func(t *testing.T) {
+		kindObj := []kind{
+			{Kind: "DaemonSet", Name: "prometheus-standalone-node-exporter", Image: "quay.io/prometheus/node-exporter:v1.1.2"},
+			{Kind: "Deployment", Name: "prometheus-standalone-server", Image: "jimmidyson/configmap-reload:v0.5.0"},
+			{Kind: "StatefulSet", Name: "prometheus-standalone-kube-state-metrics", Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0"},
+		}
+
+		expected := []string{"quay.io/prometheus/node-exporter:v1.1.2", "jimmidyson/configmap-reload:v0.5.0", "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0"}
+		images := getImagesFromKind(kindObj)
+		assert.ElementsMatch(t, expected, images)
 	})
 }

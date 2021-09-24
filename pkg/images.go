@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"log"
@@ -17,6 +18,10 @@ const (
 	// ImageRegex is the default regex, that is used to split one big helm template to multiple templates.
 	// Splitting templates eases the task of  identifying Kubernetes objects.
 	ImageRegex = `---\n# Source:\s.*.`
+	metaData   = "metadata"
+	img        = "image"
+	kindName   = "name"
+	kubeKind   = "kind"
 )
 
 // Images represents GetImages.
@@ -29,8 +34,16 @@ type Images struct {
 	ImageRegex   string
 	ValueFiles   ValueFiles
 	UniqueImages bool
+	JSON         bool
+	YAML         bool
 	release      string
 	chart        string
+}
+
+type kind struct {
+	Kind  string `json:"kind,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Image string `json:"image,omitempty"`
 }
 
 func init() {
@@ -51,7 +64,7 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 	}
 
 	selectedKinds := make([]map[string]interface{}, 0)
-	images := make([]string, 0)
+	images := make([]kind, 0)
 	kubeKindTemplates := image.getTemplates(chart)
 	for _, kubeKindTemplate := range kubeKindTemplates {
 		var kindYaml map[string]interface{}
@@ -59,7 +72,7 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		if len(image.Kind) != 0 {
-			if find(image.Kind, kindYaml["kind"].(string)) {
+			if find(image.Kind, kindYaml[kubeKind].(string)) {
 				selectedKinds = append(selectedKinds, kindYaml)
 			}
 		} else {
@@ -68,19 +81,39 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, selectedKind := range selectedKinds {
-		if foundImage, ok := findKey(selectedKind, "image"); ok {
-			images = append(images, foundImage.(string))
+		if foundImage, ok := findKey(selectedKind, img); ok {
+			name, _ := findKey(selectedKind[metaData], kindName)
+			images = append(images, kind{
+				Kind:  selectedKind[kubeKind].(string),
+				Image: foundImage.(string),
+				Name:  name.(string),
+			})
 		}
 	}
 
 	filteredImages := image.filterImages(images)
-
 	if image.UniqueImages {
-		filteredImages = getUniqueSlice(filteredImages)
+		filteredImages = getUniqEntries(filteredImages)
 	}
 
-	for _, img := range filteredImages {
-		fmt.Printf("%v\n", img)
+	if image.JSON {
+		kindJSON, err := json.MarshalIndent(filteredImages, " ", " ")
+		if err != nil {
+			return err
+		}
+		fmt.Printf(string(kindJSON))
+	} else if image.YAML {
+		kindYAML, err := yaml.Marshal(filteredImages)
+		if err != nil {
+			return err
+		}
+		fmt.Printf(string(kindYAML))
+	} else {
+		imagesFromKind := getImagesFromKind(filteredImages)
+
+		for _, img := range imagesFromKind {
+			fmt.Printf("%v\n", img)
+		}
 	}
 	return nil
 }
@@ -122,16 +155,23 @@ func (image *Images) getTemplates(template []byte) []string {
 	return kinds
 }
 
-func (image *Images) filterImages(images []string) (filteredImages []string) {
+func (image *Images) filterImages(images []kind) (filteredImages []kind) {
 	if len(image.Registries) == 0 {
 		return images
 	}
 	for _, registry := range image.Registries {
 		for _, img := range images {
-			if strings.HasPrefix(img, registry) {
+			if strings.HasPrefix(img.Image, registry) {
 				filteredImages = append(filteredImages, img)
 			}
 		}
+	}
+	return
+}
+
+func getImagesFromKind(kinds []kind) (images []string) {
+	for _, knd := range kinds {
+		images = append(images, knd.Image)
 	}
 	return
 }

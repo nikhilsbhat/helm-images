@@ -27,4 +27,8 @@ func registerGetFlags(cmd *cobra.Command) {
 		"regex used to split helm template rendered")
 	cmd.PersistentFlags().BoolVarP(&images.UniqueImages, "unique", "u", false,
 		"enable the flag if duplicates to be removed from the images that are retrieved (disabled by default)")
+	cmd.PersistentFlags().BoolVarP(&images.JSON, "json", "j", false,
+		"enable the flag display information retrieved in json format (disabled by default)")
+	cmd.PersistentFlags().BoolVarP(&images.YAML, "yaml", "y", false,
+		"enable the flag display information retrieved in yaml format (disabled by default)")
 }

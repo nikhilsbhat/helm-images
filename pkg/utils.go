@@ -89,3 +89,23 @@ func getUniqueSlice(slice []string) []string {
 	}
 	return slice
 }
+
+func getUniqEntries(slice []kind) []kind {
+	for slc := 0; slc < len(slice); slc++ {
+		if contains(slice[slc+1:], slice[slc].Image) {
+			slice = append(slice[:slc], slice[slc+1:]...)
+			slc--
+		}
+	}
+	return slice
+}
+
+func contains(slice []kind, image string) bool {
+	for _, slc := range slice {
+		if slc.Image == image {
+			fmt.Println(image, slc.Image)
+			return true
+		}
+	}
+	return false
+}

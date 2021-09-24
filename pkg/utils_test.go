@@ -84,3 +84,84 @@ func Test_getUniqueSlice(t *testing.T) {
 		assert.ElementsMatch(t, expected, actual)
 	})
 }
+
+func Test_getUniqEntries(t *testing.T) {
+	t.Run("should filter struct slice to get unique entries", func(t *testing.T) {
+		sampleMap := []kind{
+			{
+				Kind:  "DaemonSet",
+				Name:  "prometheus-standalone-node-exporter",
+				Image: "quay.io/prometheus/node-exporter:v1.1.2",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-kube-state-metrics",
+				Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-alertmanager",
+				Image: "quay.io/prometheus/alertmanager:v0.21.0",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-alert",
+				Image: "quay.io/prometheus/alertmanager:v0.21.0",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-alert-2",
+				Image: "quay.io/prometheus/alertmanager:v0.21.0",
+			},
+		}
+
+		expected := []kind{
+			{
+				Kind:  "DaemonSet",
+				Name:  "prometheus-standalone-node-exporter",
+				Image: "quay.io/prometheus/node-exporter:v1.1.2",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-kube-state-metrics",
+				Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-alert-2",
+				Image: "quay.io/prometheus/alertmanager:v0.21.0",
+			},
+		}
+		actual := getUniqEntries(sampleMap)
+		assert.Equal(t, expected, actual)
+	})
+}
+
+func Test_contains(t *testing.T) {
+	t.Run("should return true as struct contains the element", func(t *testing.T) {
+		sampleMap := []kind{
+			{
+				Kind:  "DaemonSet",
+				Name:  "prometheus-standalone-node-exporter",
+				Image: "quay.io/prometheus/node-exporter:v1.1.2",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-kube-state-metrics",
+				Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-alertmanager",
+				Image: "quay.io/prometheus/alertmanager:v0.21.0",
+			},
+			{
+				Kind:  "Deployment",
+				Name:  "prometheus-standalone-alert",
+				Image: "quay.io/prometheus/alertmanager:v0.21.0",
+			},
+		}
+		actual := contains(sampleMap, "quay.io/prometheus/alertmanager:v0.21.0")
+		assert.Equal(t, true, actual)
+	})
+}
