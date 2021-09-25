@@ -55,9 +55,12 @@ function install() {
     exit 1
   fi
 
+  echo
   echo "helm-images is installed."
   echo
-  echo "See https://github.com/nikhilsbhat/helm-images for help getting started."
+  "${HELM_PLUGIN_DIR}"/bin/helm-images -h
+  echo
+  echo "See https://github.com/nikhilsbhat/helm-images#readme for more information on getting started."
 }
 
 install "$@"

@@ -103,7 +103,6 @@ func getUniqEntries(slice []kind) []kind {
 func contains(slice []kind, image string) bool {
 	for _, slc := range slice {
 		if slc.Image == image {
-			fmt.Println(image, slc.Image)
 			return true
 		}
 	}
