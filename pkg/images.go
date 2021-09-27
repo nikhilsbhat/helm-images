@@ -101,20 +101,25 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf(string(kindJSON))
-	} else if image.YAML {
+		fmt.Printf("%s", string(kindJSON))
+		return nil
+	}
+
+	if image.YAML {
 		kindYAML, err := yaml.Marshal(filteredImages)
 		if err != nil {
 			return err
 		}
-		fmt.Printf(string(kindYAML))
-	} else {
-		imagesFromKind := getImagesFromKind(filteredImages)
-
-		for _, img := range imagesFromKind {
-			fmt.Printf("%v\n", img)
-		}
+		fmt.Printf("%s\n", "---")
+		fmt.Printf("%s", string(kindYAML))
+		return nil
 	}
+	imagesFromKind := getImagesFromKind(filteredImages)
+
+	for _, img := range imagesFromKind {
+		fmt.Printf("%v\n", img)
+	}
+
 	return nil
 }
 

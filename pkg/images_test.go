@@ -137,10 +137,14 @@ func Test_getImagesFromKind(t *testing.T) {
 		kindObj := []kind{
 			{Kind: "DaemonSet", Name: "prometheus-standalone-node-exporter", Image: "quay.io/prometheus/node-exporter:v1.1.2"},
 			{Kind: "Deployment", Name: "prometheus-standalone-server", Image: "jimmidyson/configmap-reload:v0.5.0"},
-			{Kind: "StatefulSet", Name: "prometheus-standalone-kube-state-metrics", Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0"},
+			{Kind: "StatefulSet", Name: "prometheus-standalone-kube-state-metrics", Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0"}, //nolint:lll
 		}
 
-		expected := []string{"quay.io/prometheus/node-exporter:v1.1.2", "jimmidyson/configmap-reload:v0.5.0", "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0"}
+		expected := []string{
+			"quay.io/prometheus/node-exporter:v1.1.2",
+			"jimmidyson/configmap-reload:v0.5.0",
+			"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+		}
 		images := getImagesFromKind(kindObj)
 		assert.ElementsMatch(t, expected, images)
 	})
