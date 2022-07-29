@@ -7,9 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	cmd *cobra.Command
-)
+var cmd *cobra.Command
 
 func init() {
 	cmd = SetImagesCommands()

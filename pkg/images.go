@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"log"
@@ -10,18 +9,16 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ghodss/yaml"
+	"github.com/nikhilsbhat/helm-images/pkg/k8s"
+
 	"github.com/spf13/cobra"
+	"github.com/thoas/go-funk"
 )
 
 const (
 	// ImageRegex is the default regex, that is used to split one big helm template to multiple templates.
 	// Splitting templates eases the task of  identifying Kubernetes objects.
 	ImageRegex = `---\n# Source:\s.*.`
-	metaData   = "metadata"
-	img        = "image"
-	kindName   = "name"
-	kubeKind   = "kind"
 )
 
 // Images represents GetImages.
@@ -38,12 +35,6 @@ type Images struct {
 	YAML         bool
 	release      string
 	chart        string
-}
-
-type kind struct {
-	Kind  string `json:"kind,omitempty"`
-	Name  string `json:"name,omitempty"`
-	Image string `json:"image,omitempty"`
 }
 
 func init() {
@@ -63,64 +54,42 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	selectedKinds := make([]map[string]interface{}, 0)
-	images := make([]kind, 0)
+	images := make([]*k8s.Image, 0)
 	kubeKindTemplates := image.getTemplates(chart)
 	for _, kubeKindTemplate := range kubeKindTemplates {
-		var kindYaml map[string]interface{}
-		if err := yaml.Unmarshal([]byte(kubeKindTemplate), &kindYaml); err != nil {
+		currentKind, err := k8s.NewKind().Get(kubeKindTemplate)
+		if err != nil {
 			return err
 		}
-		if len(image.Kind) != 0 {
-			if find(image.Kind, kindYaml[kubeKind].(string)) {
-				selectedKinds = append(selectedKinds, kindYaml)
+
+		if !funk.Contains(image.Kind, currentKind) {
+			continue
+		}
+
+		switch currentKind {
+		case k8s.KindDeployment:
+			deployImages, err := k8s.NewDeployment().Get(kubeKindTemplate)
+			if err != nil {
+				return err
 			}
-		} else {
-			selectedKinds = append(selectedKinds, kindYaml)
+			images = append(images, deployImages)
+		case k8s.KindStatefulSet:
+			stsImages, err := k8s.NewStatefulSet().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+			images = append(images, stsImages)
+		case k8s.KindDaemonSet:
+			daemonImages, err := k8s.NewDaemonSet().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+			images = append(images, daemonImages)
+		default:
+			log.Printf("kind %v is not supported at the moment", currentKind)
 		}
 	}
-
-	for _, selectedKind := range selectedKinds {
-		if foundImage, ok := findKey(selectedKind, img); ok {
-			name, _ := findKey(selectedKind[metaData], kindName)
-			images = append(images, kind{
-				Kind:  selectedKind[kubeKind].(string),
-				Image: foundImage.(string),
-				Name:  name.(string),
-			})
-		}
-	}
-
-	filteredImages := image.filterImages(images)
-	if image.UniqueImages {
-		filteredImages = getUniqEntries(filteredImages)
-	}
-
-	if image.JSON {
-		kindJSON, err := json.MarshalIndent(filteredImages, " ", " ")
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s", string(kindJSON))
-		return nil
-	}
-
-	if image.YAML {
-		kindYAML, err := yaml.Marshal(filteredImages)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s\n", "---")
-		fmt.Printf("%s", string(kindYAML))
-		return nil
-	}
-	imagesFromKind := getImagesFromKind(filteredImages)
-
-	for _, img := range imagesFromKind {
-		fmt.Printf("%v\n", img)
-	}
-
-	return nil
+	return image.render(images)
 }
 
 func (image *Images) getChartTemplate() ([]byte, error) {
@@ -160,23 +129,25 @@ func (image *Images) getTemplates(template []byte) []string {
 	return kinds
 }
 
-func (image *Images) filterImages(images []kind) (filteredImages []kind) {
+func (image *Images) filterImagesByRegistries(images []string) []string {
 	if len(image.Registries) == 0 {
 		return images
 	}
+
+	var filteredImages []string
 	for _, registry := range image.Registries {
 		for _, img := range images {
-			if strings.HasPrefix(img.Image, registry) {
+			if strings.HasPrefix(img, registry) {
 				filteredImages = append(filteredImages, img)
 			}
 		}
 	}
-	return
+	return filteredImages
 }
 
-func getImagesFromKind(kinds []kind) (images []string) {
+func getImagesFromKind(kinds []*k8s.Image) (images []string) {
 	for _, knd := range kinds {
-		images = append(images, knd.Image)
+		images = append(images, knd.Image...)
 	}
 	return
 }

@@ -3,45 +3,32 @@ package pkg
 import (
 	"testing"
 
+	"github.com/nikhilsbhat/helm-images/pkg/k8s"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestImages_filterImages(t *testing.T) {
 	t.Run("should be able to return the filtered image list", func(t *testing.T) {
-		imageList := []kind{
-			{
-				Image: "quay.io/prometheus/node-exporter:v1.1.2",
-			},
-			{
-				Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
-			},
-			{
-				Image: "quay.io/prometheus/alertmanager:v0.21.0",
-			},
-			{
-				Image: "prom/pushgateway:v1.3.1",
-			},
-			{
-				Image: "jimmidyson/configmap-reload:v0.5.0",
-			},
+		imageList := []string{
+			"quay.io/prometheus/node-exporter:v1.1.2",
+			"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+			"quay.io/prometheus/alertmanager:v0.21.0",
+			"prom/pushgateway:v1.3.1",
+			"jimmidyson/configmap-reload:v0.5.0",
 		}
 
 		imageClient := Images{
 			Registries: []string{"quay.io", "k8s.gcr.io"},
 		}
 
-		expected := []kind{
-			{
-				Image: "quay.io/prometheus/node-exporter:v1.1.2",
-			},
-			{
-				Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
-			},
-			{
-				Image: "quay.io/prometheus/alertmanager:v0.21.0",
-			},
+		expected := []string{
+			"quay.io/prometheus/node-exporter:v1.1.2",
+			"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+			"quay.io/prometheus/alertmanager:v0.21.0",
 		}
-		filteredImages := imageClient.filterImages(imageList)
+
+		filteredImages := imageClient.filterImagesByRegistries(imageList)
 		assert.ElementsMatch(t, expected, filteredImages)
 	})
 }
@@ -134,10 +121,10 @@ data:
 
 func Test_getImagesFromKind(t *testing.T) {
 	t.Run("should be able to get all images from struct kind", func(t *testing.T) {
-		kindObj := []kind{
-			{Kind: "DaemonSet", Name: "prometheus-standalone-node-exporter", Image: "quay.io/prometheus/node-exporter:v1.1.2"},
-			{Kind: "Deployment", Name: "prometheus-standalone-server", Image: "jimmidyson/configmap-reload:v0.5.0"},
-			{Kind: "StatefulSet", Name: "prometheus-standalone-kube-state-metrics", Image: "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0"}, //nolint:lll
+		kindObj := []*k8s.Image{
+			{Kind: "DaemonSet", Name: "prometheus-standalone-node-exporter", Image: []string{"quay.io/prometheus/node-exporter:v1.1.2"}},
+			{Kind: "Deployment", Name: "prometheus-standalone-server", Image: []string{"jimmidyson/configmap-reload:v0.5.0"}},
+			{Kind: "StatefulSet", Name: "prometheus-standalone-kube-state-metrics", Image: []string{"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0"}}, //nolint:lll
 		}
 
 		expected := []string{

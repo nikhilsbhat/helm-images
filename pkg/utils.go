@@ -90,9 +90,9 @@ func getUniqueSlice(slice []string) []string {
 	return slice
 }
 
-func getUniqEntries(slice []kind) []kind {
+func getUniqEntries(slice []string) []string {
 	for slc := 0; slc < len(slice); slc++ {
-		if contains(slice[slc+1:], slice[slc].Image) {
+		if contains(slice[slc+1:], slice[slc]) {
 			slice = append(slice[:slc], slice[slc+1:]...)
 			slc--
 		}
@@ -100,9 +100,9 @@ func getUniqEntries(slice []kind) []kind {
 	return slice
 }
 
-func contains(slice []kind, image string) bool {
+func contains(slice []string, image string) bool {
 	for _, slc := range slice {
-		if slc.Image == image {
+		if slc == image {
 			return true
 		}
 	}

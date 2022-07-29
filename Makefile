@@ -26,6 +26,7 @@ help: ## Prints help (only for targets with comments)
 local.fmt: ## Lints all the go code in the application.
 	gofmt -w $(GOFMT_FILES)
 	$(GOBIN)/goimports -w $(GOFMT_FILES)
+	$(GOBIN)/gofumpt -l -w $(GOFMT_FILES)
 
 local.check: local.fmt ## Loads all the dependencies to vendor directory
 	go mod vendor
@@ -46,7 +47,7 @@ mock.publish: local.check ## Builds and mocks app release
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --skip-publish --rm-dist
 
 lint: ## Lint's application for errors, it is a linters aggregator (https://github.com/golangci/golangci-lint).
-	if [ -z "${DEV}" ]; then golangci-lint run --color always ; else docker run --rm -v $(APP_DIR):/app -w /app golangci/golangci-lint:v1.31-alpine golangci-lint run --color always ; fi
+	if [ -z "${DEV}" ]; then golangci-lint run --color always ; else docker run --rm -v $(APP_DIR):/app -w /app golangci/golangci-lint:v1.46.2-alpine golangci-lint run --color always ; fi
 
 report: ## Publishes the go-report of the appliction (uses go-reportcard)
 	if [ -z "${DEV}" ]; then goreportcard -v ; else docker run --rm -v $(APP_DIR):/app -w /app basnik/goreportcard-cli:latest goreportcard-cli -v ; fi

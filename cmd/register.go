@@ -11,9 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	images = pkg.Images{}
-)
+var images = pkg.Images{}
 
 const (
 	getArgumentCount = 2
