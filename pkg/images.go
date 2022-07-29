@@ -85,6 +85,24 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 				return err
 			}
 			images = append(images, daemonImages)
+		case k8s.KindReplicaSet:
+			replicaSets, err := k8s.NewReplicaSets().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+			images = append(images, replicaSets)
+		case k8s.KindCronJob:
+			cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+			images = append(images, cronJob)
+		case k8s.KindJob:
+			job, err := k8s.NewJob().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+			images = append(images, job)
 		default:
 			log.Printf("kind %v is not supported at the moment", currentKind)
 		}

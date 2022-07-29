@@ -1,0 +1,16 @@
+name: images
+flags:
+  - set
+  - set-file
+  - set-string
+  - values
+commands:
+  - name: get
+    flags:
+      - kind
+      - image-regex
+      - registry
+      - unique
+      - yaml
+      - json
+  - name: version

@@ -22,7 +22,10 @@ func registerFlags(cmd *cobra.Command) {
 func registerGetFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringSliceVarP(&images.Registries, "registry", "r", nil,
 		"registry name (docker images belonging to this registry)")
-	cmd.PersistentFlags().StringSliceVarP(&images.Kind, "kind", "k", []string{k8s.KindDeployment, k8s.KindStatefulSet, k8s.KindDaemonSet},
+	cmd.PersistentFlags().StringSliceVarP(&images.Kind, "kind", "k", []string{
+		k8s.KindDeployment, k8s.KindStatefulSet, k8s.KindDaemonSet,
+		k8s.KindCronJob, k8s.KindJob, k8s.KindReplicaSet,
+	},
 		"kubernetes app kind to fetch the images from")
 	cmd.PersistentFlags().StringVarP(&images.ImageRegex, "image-regex", "", pkg.ImageRegex,
 		"regex used to split helm template rendered")
