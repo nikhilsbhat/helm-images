@@ -2,16 +2,22 @@
 
 function download_plugin() {
   osName=$(uname -s)
-  DOWNLOAD_URL=$(curl --silent "https://api.github.com/repos/nikhilsbhat/helm-images/releases/latest" | grep -o "browser_download_url.*\_${osName}_x86_64.zip")
-
-  DOWNLOAD_URL=${DOWNLOAD_URL//\"/}
-  DOWNLOAD_URL=${DOWNLOAD_URL/browser_download_url: /}
+  osArch=$(uname -m)
 
   OUTPUT_BASENAME=helm-images
-  OUTPUT_BASENAME_WITH_POSTFIX="$HELM_PLUGIN_DIR$OUTPUT_BASENAME.zip"
+  version=$(grep version "$HELM_PLUGIN_DIR/plugin.yaml" | cut -d'"' -f2)
+  old=$(isOld "$version" "0.0.5")
+  if [ "$old" == "yes" ]; then
+    DOWNLOAD_URL="https://github.com/nikhilsbhat/helm-images/releases/download/v$version/helm-images_${version}_${osName}_${osArch}.zip"
+    OUTPUT_BASENAME_WITH_POSTFIX="$HELM_PLUGIN_DIR$OUTPUT_BASENAME.zip"
+  else
+    DOWNLOAD_URL="https://github.com/nikhilsbhat/helm-images/releases/download/v$version/helm-images_${version}_${osName}_${osArch}.tar.gz"
+    OUTPUT_BASENAME_WITH_POSTFIX="$HELM_PLUGIN_DIR$OUTPUT_BASENAME.tar.gz"
+  fi
+
 
   if [ -z "$DOWNLOAD_URL" ]; then
-    echo "Unsupported OS / architecture: ${osName}"
+    echo "Unsupported OS / architecture: ${osName}/${osArch}"
     exit 1
   fi
 
@@ -34,8 +40,7 @@ function install_plugin() {
   rm -rf "$HELM_PLUGIN_TEMP_PATH"
 
   echo "Preparing to install into ${HELM_PLUGIN_DIR}"
-  mkdir -p "$HELM_PLUGIN_TEMP_PATH"
-  unzip "$HELM_PLUGIN_ARTIFACT_PATH" -d "$HELM_PLUGIN_TEMP_PATH"
+  mkdir -p "$HELM_PLUGIN_TEMP_PATH" && tar -xvf "$HELM_PLUGIN_ARTIFACT_PATH" -C "$HELM_PLUGIN_TEMP_PATH"
   mkdir -p "$HELM_PLUGIN_DIR/bin"
   mv "$HELM_PLUGIN_TEMP_PATH"/helm-images "$HELM_PLUGIN_DIR/bin/helm-images"
   rm -rf "$HELM_PLUGIN_ARTIFACT_PATH"
