@@ -1,5 +1,17 @@
 #! /bin/bash -e
 
+function verlte() {
+    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+}
+
+function verlt() {
+    [ "$1" = "$2" ] && return 1 || verlte $1 $2
+}
+
+function isOld() {
+    verlte $1 $2 && echo "yes" || echo "no"
+}
+
 function download_plugin() {
   osName=$(uname -s)
   osArch=$(uname -m)
