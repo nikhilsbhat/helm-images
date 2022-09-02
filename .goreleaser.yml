@@ -25,6 +25,7 @@ archives:
       - plugin.yaml
       - LICENSE
       - completion.yaml
+      - install-binary.sh
 
 checksum:
   name_template: 'checksums.txt'
