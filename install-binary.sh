@@ -1,15 +1,23 @@
 #! /bin/bash -e
 
 function verlte() {
-    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
+  [ "$1" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]
 }
 
 function verlt() {
-    [ "$1" = "$2" ] && return 1 || verlte $1 $2
+  [ "$1" = "$2" ] && return 1 || verlte $1 $2
 }
 
 function isOld() {
-    verlte $1 $2 && echo "yes" || echo "no"
+  verlte $1 $2 && echo "yes" || echo "no"
+}
+
+function exit_trap() {
+  result=$?
+  if [ "$result" != "0" ]; then
+    printf "Failed to install helm images \n"
+  fi
+  exit $result
 }
 
 function download_plugin() {
@@ -21,21 +29,26 @@ function download_plugin() {
   old=$(isOld "$version" "0.0.5")
   if [ "$old" == "yes" ]; then
     DOWNLOAD_URL="https://github.com/nikhilsbhat/helm-images/releases/download/v$version/helm-images_${version}_${osName}_${osArch}.zip"
-    OUTPUT_BASENAME_WITH_POSTFIX="$HELM_PLUGIN_DIR$OUTPUT_BASENAME.zip"
+    OUTPUT_BASENAME_WITH_POSTFIX="$HELM_PLUGIN_DIR/$OUTPUT_BASENAME.zip"
   else
     DOWNLOAD_URL="https://github.com/nikhilsbhat/helm-images/releases/download/v$version/helm-images_${version}_${osName}_${osArch}.tar.gz"
-    OUTPUT_BASENAME_WITH_POSTFIX="$HELM_PLUGIN_DIR$OUTPUT_BASENAME.tar.gz"
+    OUTPUT_BASENAME_WITH_POSTFIX="$HELM_PLUGIN_DIR/$OUTPUT_BASENAME.tar.gz"
   fi
 
+  printf "downloading ${DOWNLOAD_URL} to ${HELM_PLUGIN_DIR}"
 
   if [ -z "$DOWNLOAD_URL" ]; then
-    echo "Unsupported OS / architecture: ${osName}/${osArch}"
+    printf "Unsupported OS / architecture: ${osName}/${osArch}"
     exit 1
   fi
 
-  #  echo "$DOWNLOAD_URL"
   if [[ -n $(command -v curl) ]]; then
-    curl -L $DOWNLOAD_URL -o $OUTPUT_BASENAME_WITH_POSTFIX
+    if curl --fail -L $DOWNLOAD_URL -o $OUTPUT_BASENAME_WITH_POSTFIX; then
+      printf "successfully download the archive proceeding to install \n"
+    else
+      printf "failed while downloading helm archive \n"
+      exit 1
+    fi
   else
     echo "Need curl"
     exit -1
@@ -51,7 +64,7 @@ function install_plugin() {
 
   rm -rf "$HELM_PLUGIN_TEMP_PATH"
 
-  echo "Preparing to install into ${HELM_PLUGIN_DIR}"
+  printf "Preparing to install into ${HELM_PLUGIN_DIR}"
   mkdir -p "$HELM_PLUGIN_TEMP_PATH" && tar -xvf "$HELM_PLUGIN_ARTIFACT_PATH" -C "$HELM_PLUGIN_TEMP_PATH"
   mkdir -p "$HELM_PLUGIN_DIR/bin"
   mv "$HELM_PLUGIN_TEMP_PATH"/helm-images "$HELM_PLUGIN_DIR/bin/helm-images"
@@ -61,9 +74,15 @@ function install_plugin() {
 function install() {
   echo "Installing helm-images..."
 
-  local ARTIFACT_PATH=$(download_plugin)
+  download_plugin
+  status=$?
+  if [ $status -ne 0 ]; then
+    printf "downloading plugin failed \n"
+    exit 1
+  fi
+
   set +e
-  install_plugin "$ARTIFACT_PATH"
+  install_plugin "$OUTPUT_BASENAME_WITH_POSTFIX"
   local INSTALL_PLUGIN_STAT=$?
   set -e
 
@@ -79,5 +98,7 @@ function install() {
   echo
   echo "See https://github.com/nikhilsbhat/helm-images#readme for more information on getting started."
 }
+
+trap "exit_trap" EXIT
 
 install "$@"
