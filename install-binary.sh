@@ -64,17 +64,18 @@ function install_plugin() {
 
   rm -rf "$HELM_PLUGIN_TEMP_PATH"
 
-  printf "Preparing to install into ${HELM_PLUGIN_DIR}"
+  printf "Preparing to install into %s" "${HELM_PLUGIN_DIR}"
   mkdir -p "$HELM_PLUGIN_TEMP_PATH" && tar -xvf "$HELM_PLUGIN_ARTIFACT_PATH" -C "$HELM_PLUGIN_TEMP_PATH"
   mkdir -p "$HELM_PLUGIN_DIR/bin"
   mv "$HELM_PLUGIN_TEMP_PATH"/helm-images "$HELM_PLUGIN_DIR/bin/helm-images"
+  rm -rf "$HELM_PLUGIN_TEMP_PATH"
   rm -rf "$HELM_PLUGIN_ARTIFACT_PATH"
 }
 
 function install() {
   echo "Installing helm-images..."
 
-  download_plugin
+  DOWNLOADED_ARTIFACT=$(download_plugin)
   status=$?
   if [ $status -ne 0 ]; then
     printf "downloading plugin failed \n"
@@ -82,7 +83,7 @@ function install() {
   fi
 
   set +e
-  install_plugin "$OUTPUT_BASENAME_WITH_POSTFIX"
+  install_plugin "$DOWNLOADED_ARTIFACT"
   local INSTALL_PLUGIN_STAT=$?
   set -e
 
