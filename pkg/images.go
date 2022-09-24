@@ -107,6 +107,7 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 			log.Printf("kind %v is not supported at the moment", currentKind)
 		}
 	}
+
 	return image.render(images)
 }
 
@@ -131,11 +132,12 @@ func (image *Images) getChartTemplate() ([]byte, error) {
 	cmd := exec.Command(os.Getenv("HELM_BIN"), args...) //nolint:gosec
 	output, err := cmd.Output()
 	if exitError, ok := err.(*exec.ExitError); ok {
-		return nil, fmt.Errorf("%s: %s", exitError.Error(), string(exitError.Stderr))
+		return nil, fmt.Errorf("%w: %s", exitError, exitError.Stderr)
 	}
 	if pathError, ok := err.(*fs.PathError); ok {
-		return nil, fmt.Errorf("%s: %s", pathError.Error(), pathError.Path)
+		return nil, fmt.Errorf("%w: %s", pathError, pathError.Path)
 	}
+
 	return output, nil
 }
 
@@ -144,6 +146,7 @@ func (image *Images) getTemplates(template []byte) []string {
 	kinds := temp.Split(string(template), -1)
 	// Removing empty string at the beginning as splitting string always adds it in front.
 	kinds = kinds[1:]
+
 	return kinds
 }
 
@@ -160,12 +163,15 @@ func (image *Images) filterImagesByRegistries(images []string) []string {
 			}
 		}
 	}
+
 	return filteredImages
 }
 
-func getImagesFromKind(kinds []*k8s.Image) (images []string) {
+func getImagesFromKind(kinds []*k8s.Image) []string {
+	var images []string
 	for _, knd := range kinds {
 		images = append(images, knd.Image...)
 	}
-	return
+
+	return images
 }

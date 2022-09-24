@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -31,6 +32,7 @@ func getImagesCommands() *cobra.Command {
 	command := new(imagesCommands)
 	command.commands = append(command.commands, getImagesCommnd())
 	command.commands = append(command.commands, getVersionCommand())
+
 	return command.prepareCommands()
 }
 
@@ -40,6 +42,7 @@ func (c *imagesCommands) prepareCommands() *cobra.Command {
 		rootCmd.AddCommand(cmnd)
 	}
 	registerFlags(rootCmd)
+
 	return rootCmd
 }
 
@@ -52,6 +55,7 @@ func getImagesCommnd() *cobra.Command {
 		RunE:  images.GetImages,
 	}
 	registerGetFlags(imageCommand)
+
 	return imageCommand
 }
 
@@ -65,10 +69,12 @@ func getRootCommand() *cobra.Command {
 			if err := cmd.Usage(); err != nil {
 				return err
 			}
+
 			return nil
 		},
 	}
 	rootCommand.SetUsageTemplate(getUsageTemplate())
+
 	return rootCommand
 }
 
@@ -88,15 +94,19 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 	fmt.Println("images version:", string(buildInfo))
+
 	return nil
 }
 
 func minimumArgError(cmd *cobra.Command, args []string) error {
+	minArgError := errors.New("[RELEASE] or [CHART] cannot be empty")
 	cmd.SilenceUsage = true
 	if len(args) != getArgumentCount {
-		log.Println("[RELEASE] or [CHART] cannot be empty")
-		return fmt.Errorf("[RELEASE] or [CHART] cannot be empty")
+		log.Println(minArgError)
+
+		return minArgError
 	}
+
 	return nil
 }
 

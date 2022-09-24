@@ -15,6 +15,7 @@ func (image *Images) render(images []*k8s.Image) error {
 			return err
 		}
 		fmt.Printf("%s", string(kindJSON))
+
 		return nil
 	}
 
@@ -25,6 +26,7 @@ func (image *Images) render(images []*k8s.Image) error {
 		}
 		fmt.Printf("%s\n", "---")
 		fmt.Printf("%s", string(kindYAML))
+
 		return nil
 	}
 

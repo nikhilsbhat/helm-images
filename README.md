@@ -75,9 +75,11 @@ Usage:
 Flags:
   -h, --help                 help for get
       --image-regex string   regex used to split helm template rendered (default "---\\n# Source:\\s.*.")
-  -k, --kind strings         kubernetes app kind to fetch the images from (if not specified all kinds are considered)
+  -j, --json                 enable the flag display information retrieved in json format (disabled by default)
+  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet])
   -r, --registry strings     registry name (docker images belonging to this registry)
-  -u, --unique               enable the flag if duplicates to be removed from the images that are retrieved (disabled by default)
+  -u, --unique               enable the flag if duplicates to be removed from the images that are retrieved (disabled by default also overrides --kind)
+  -y, --yaml                 enable the flag display information retrieved in yaml format (disabled by default)
 
 Global Flags:
       --set stringArray          set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)

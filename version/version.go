@@ -13,9 +13,9 @@ var (
 	// of application is he using.
 	Env string
 
-	// BuildDate of the app
+	// BuildDate of the app.
 	BuildDate string
-	// GoVersion represents golang version used
+	// GoVersion represents golang version used.
 	GoVersion string
 	// Platform is the combination of OS and Architecture for which the binary is built for.
 	Platform string
@@ -38,6 +38,7 @@ func GetBuildInfo() BuildInfo {
 	if strings.ToLower(Env) != "production" {
 		Env = "alfa"
 	}
+
 	return BuildInfo{
 		Version:     Version,
 		Revision:    Revision,

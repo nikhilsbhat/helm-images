@@ -15,7 +15,7 @@ function isOld() {
 function exit_trap() {
   result=$?
   if [ "$result" != "0" ]; then
-    printf "Failed to install helm images \n"
+    printf "Failed to install helm images\n"
   fi
   exit $result
 }
@@ -35,18 +35,20 @@ function download_plugin() {
     OUTPUT_BASENAME_WITH_POSTFIX="$HELM_PLUGIN_DIR/$OUTPUT_BASENAME.tar.gz"
   fi
 
-  printf "downloading ${DOWNLOAD_URL} to ${HELM_PLUGIN_DIR}"
+  echo -e "download url set to ${DOWNLOAD_URL}\n"
+  echo -e "artifact name with path ${OUTPUT_BASENAME_WITH_POSTFIX}\n"
+  echo -e "downloading ${DOWNLOAD_URL} to ${HELM_PLUGIN_DIR}\n"
 
-  if [ -z "$DOWNLOAD_URL" ]; then
-    printf "Unsupported OS / architecture: ${osName}/${osArch}"
+  if [ -z "${DOWNLOAD_URL}" ]; then
+    echo -e "Unsupported OS / architecture: ${osName}/${osArch}\n"
     exit 1
   fi
 
   if [[ -n $(command -v curl) ]]; then
-    if curl --fail -L $DOWNLOAD_URL -o $OUTPUT_BASENAME_WITH_POSTFIX; then
-      printf "successfully download the archive proceeding to install \n"
+    if curl --fail -L "${DOWNLOAD_URL}" -o "${OUTPUT_BASENAME_WITH_POSTFIX}"; then
+      echo -e "successfully download the archive proceeding to install\n"
     else
-      printf "failed while downloading helm archive \n"
+      echo -e "failed while downloading helm archive\n"
       exit 1
     fi
   else
@@ -54,41 +56,42 @@ function download_plugin() {
     exit -1
   fi
 
-  echo $OUTPUT_BASENAME_WITH_POSTFIX
 }
 
 function install_plugin() {
-  local HELM_PLUGIN_ARTIFACT_PATH=$1
+  local HELM_PLUGIN_ARTIFACT_PATH=${OUTPUT_BASENAME_WITH_POSTFIX}
   local PROJECT_NAME="helm-images"
   local HELM_PLUGIN_TEMP_PATH="/tmp/$PROJECT_NAME"
 
-  rm -rf "$HELM_PLUGIN_TEMP_PATH"
+  echo -n "HELM_PLUGIN_ARTIFACT_PATH: ${HELM_PLUGIN_ARTIFACT_PATH}"
+  rm -rf "${HELM_PLUGIN_TEMP_PATH}"
 
-  printf "Preparing to install into %s" "${HELM_PLUGIN_DIR}"
-  mkdir -p "$HELM_PLUGIN_TEMP_PATH" && tar -xvf "$HELM_PLUGIN_ARTIFACT_PATH" -C "$HELM_PLUGIN_TEMP_PATH"
+  echo -e "Preparing to install into ${HELM_PLUGIN_DIR}\n"
+  mkdir -p "${HELM_PLUGIN_TEMP_PATH}"
+  tar -xvf "${HELM_PLUGIN_ARTIFACT_PATH}" -C "${HELM_PLUGIN_TEMP_PATH}"
   mkdir -p "$HELM_PLUGIN_DIR/bin"
-  mv "$HELM_PLUGIN_TEMP_PATH"/helm-images "$HELM_PLUGIN_DIR/bin/helm-images"
-  rm -rf "$HELM_PLUGIN_TEMP_PATH"
-  rm -rf "$HELM_PLUGIN_ARTIFACT_PATH"
+  mv "${HELM_PLUGIN_TEMP_PATH}"/helm-images "${HELM_PLUGIN_DIR}/bin/helm-images"
+  rm -rf "${HELM_PLUGIN_TEMP_PATH}"
+  rm -rf "${HELM_PLUGIN_ARTIFACT_PATH}"
 }
 
 function install() {
   echo "Installing helm-images..."
 
-  DOWNLOADED_ARTIFACT=$(download_plugin)
+  download_plugin
   status=$?
   if [ $status -ne 0 ]; then
-    printf "downloading plugin failed \n"
+    echo -e "downloading plugin failed\n"
     exit 1
   fi
 
   set +e
-  install_plugin "$DOWNLOADED_ARTIFACT"
+  install_plugin
   local INSTALL_PLUGIN_STAT=$?
   set -e
 
-  if [ ! $INSTALL_PLUGIN_STAT -eq 0 ]; then
-    echo "installing helm plugin helm-images failed with error code: $INSTALL_PLUGIN_STAT"
+  if [ "$INSTALL_PLUGIN_STAT" != "0" ]; then
+    echo "installing helm plugin helm-images failed with error code: ${INSTALL_PLUGIN_STAT}"
     exit 1
   fi
 

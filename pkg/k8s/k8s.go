@@ -52,6 +52,7 @@ func (kin *Kind) Get(dataMap string) (string, error) {
 	if len(kindYaml) != 0 {
 		return kindYaml[kubeKind].(string), nil
 	}
+
 	return "", nil
 }
 
@@ -65,6 +66,7 @@ func (dep *Deployments) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
 	return images, nil
 }
 
@@ -78,6 +80,7 @@ func (dep *StatefulSets) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
 	return images, nil
 }
 
@@ -91,6 +94,7 @@ func (dep *DaemonSets) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
 	return images, nil
 }
 
@@ -105,6 +109,7 @@ func (dep *CronJob) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
 	return images, nil
 }
 
@@ -118,6 +123,7 @@ func (dep *Job) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
 	return images, nil
 }
 
@@ -131,6 +137,7 @@ func (dep *ReplicaSets) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
 	return images, nil
 }
 
@@ -167,5 +174,6 @@ func (cont containers) getImages() []string {
 	for _, container := range cont.containers {
 		images = append(images, container.Image)
 	}
+
 	return images
 }

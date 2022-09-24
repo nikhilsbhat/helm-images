@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -23,11 +22,11 @@ func (v *ValueFiles) Valid() error {
 		}
 	}
 
-	if errStr == "" {
+	if len(errStr) == 0 {
 		return nil
 	}
 
-	return errors.New(errStr)
+	return fmt.Errorf("%s", errStr)
 }
 
 func (v *ValueFiles) Type() string {
@@ -38,6 +37,7 @@ func (v *ValueFiles) Set(value string) error {
 	for _, filePath := range strings.Split(value, ",") {
 		*v = append(*v, filePath)
 	}
+
 	return nil
 }
 
@@ -47,6 +47,7 @@ func find(slice []string, val string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -87,6 +88,7 @@ func getUniqueSlice(slice []string) []string {
 			slc--
 		}
 	}
+
 	return slice
 }
 
@@ -97,6 +99,7 @@ func getUniqEntries(slice []string) []string {
 			slc--
 		}
 	}
+
 	return slice
 }
 
@@ -106,5 +109,6 @@ func contains(slice []string, image string) bool {
 			return true
 		}
 	}
+
 	return false
 }
