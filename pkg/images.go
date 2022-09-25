@@ -3,15 +3,15 @@ package pkg
 import (
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
 
-	"github.com/spf13/cobra"
 	"github.com/thoas/go-funk"
 )
 
@@ -30,26 +30,31 @@ type Images struct {
 	FileValues   []string
 	ImageRegex   string
 	ValueFiles   ValueFiles
+	FromRelease  bool
 	UniqueImages bool
 	JSON         bool
 	YAML         bool
 	release      string
 	chart        string
+	log          *logrus.Logger
 }
 
-func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+func (image *Images) SetRelease(release string) {
+	image.release = release
+}
+
+func (image *Images) SetChart(chart string) {
+	image.chart = chart
 }
 
 // GetImages fetches all available images from the specified chart.
 // Also filters identified images, to get just unique ones.
-func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
-	cmd.SilenceUsage = true
+func (image *Images) GetImages() error {
+	image.log.Debug(
+		fmt.Sprintf("got all required values to fetch the images from chart/release '%s' proceeding furter to fetch the same", image.release),
+	)
 
-	image.release = args[0]
-	image.chart = args[1]
-
-	chart, err := image.getChartTemplate()
+	chart, err := image.getChartManifests()
 	if err != nil {
 		return err
 	}
@@ -63,8 +68,13 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 		}
 
 		if !funk.Contains(image.Kind, currentKind) {
+			image.log.Debug(fmt.Sprintf("either helm-images plugin does not support kind '%s' "+
+				"at the moment or manifest might not have images to filter", currentKind))
+
 			continue
 		}
+
+		image.log.Debug(fmt.Sprintf("fetching images from kind '%s'", currentKind))
 
 		switch currentKind {
 		case k8s.KindDeployment:
@@ -91,6 +101,12 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 				return err
 			}
 			images = append(images, replicaSets)
+		case k8s.KindPod:
+			pods, err := k8s.NewPod().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+			images = append(images, pods)
 		case k8s.KindCronJob:
 			cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate)
 			if err != nil {
@@ -104,11 +120,23 @@ func (image *Images) GetImages(cmd *cobra.Command, args []string) error {
 			}
 			images = append(images, job)
 		default:
-			log.Printf("kind %v is not supported at the moment", currentKind)
+			image.log.Debug(fmt.Sprintf("kind '%s' is not supported at the moment", currentKind))
 		}
 	}
 
 	return image.render(images)
+}
+
+func (image *Images) getChartManifests() ([]byte, error) {
+	if image.FromRelease {
+		image.log.Debug(fmt.Sprintf("from-release is selected, hence fetching manifests for '%s' from helm release", image.release))
+
+		return image.GetImagesFromRelease()
+	}
+
+	image.log.Debug(fmt.Sprintf("fetching manifests for '%s' by rendering helm template locally", image.release))
+
+	return image.getChartTemplate()
 }
 
 func (image *Images) getChartTemplate() ([]byte, error) {
@@ -132,9 +160,13 @@ func (image *Images) getChartTemplate() ([]byte, error) {
 	cmd := exec.Command(os.Getenv("HELM_BIN"), args...) //nolint:gosec
 	output, err := cmd.Output()
 	if exitError, ok := err.(*exec.ExitError); ok {
+		image.log.Error(fmt.Sprintf("rendering template for release: '%s' errored with ", image.release), err)
+
 		return nil, fmt.Errorf("%w: %s", exitError, exitError.Stderr)
 	}
 	if pathError, ok := err.(*fs.PathError); ok {
+		image.log.Error("locating helm cli errored with", err)
+
 		return nil, fmt.Errorf("%w: %s", pathError, pathError.Path)
 	}
 
@@ -142,6 +174,7 @@ func (image *Images) getChartTemplate() ([]byte, error) {
 }
 
 func (image *Images) getTemplates(template []byte) []string {
+	image.log.Debug(fmt.Sprintf("splitting helm manifests with regex pattern: '%s'", image.ImageRegex))
 	temp := regexp.MustCompile(image.ImageRegex)
 	kinds := temp.Split(string(template), -1)
 	// Removing empty string at the beginning as splitting string always adds it in front.

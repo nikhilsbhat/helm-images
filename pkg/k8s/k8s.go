@@ -4,7 +4,7 @@ import (
 	"github.com/ghodss/yaml"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -14,6 +14,7 @@ const (
 	KindCronJob     = "CronJob"
 	KindJob         = "Job"
 	KindReplicaSet  = "ReplicaSet"
+	KindPod         = "Pod"
 	kubeKind        = "kind"
 )
 
@@ -24,9 +25,10 @@ type (
 	ReplicaSets  appsv1.ReplicaSet
 	CronJob      batchv1.CronJob
 	Job          batchv1.Job
+	Pod          corev1.Pod
 	Kind         map[string]interface{}
 	containers   struct {
-		containers []v1.Container
+		containers []corev1.Container
 	}
 )
 
@@ -141,6 +143,20 @@ func (dep *ReplicaSets) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+func (dep *Pod) Get(dataMap string) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+	depContainers := containers{append(dep.Spec.Containers, dep.Spec.InitContainers...)}
+	images := &Image{
+		Kind:  KindPod,
+		Name:  dep.Name,
+		Image: depContainers.getImages(),
+	}
+
+	return images, nil
+}
+
 func NewDeployment() ImagesInterface {
 	return &Deployments{}
 }
@@ -163,6 +179,10 @@ func NewCronjob() ImagesInterface {
 
 func NewJob() ImagesInterface {
 	return &Job{}
+}
+
+func NewPod() ImagesInterface {
+	return &Pod{}
 }
 
 func NewKind() KindInterface {

@@ -24,9 +24,11 @@ func registerGetFlags(cmd *cobra.Command) {
 		"registry name (docker images belonging to this registry)")
 	cmd.PersistentFlags().StringSliceVarP(&images.Kind, "kind", "k", []string{
 		k8s.KindDeployment, k8s.KindStatefulSet, k8s.KindDaemonSet,
-		k8s.KindCronJob, k8s.KindJob, k8s.KindReplicaSet,
+		k8s.KindCronJob, k8s.KindJob, k8s.KindReplicaSet, k8s.KindPod,
 	},
 		"kubernetes app kind to fetch the images from")
+	cmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info",
+		"log level for the plugin helm images (defaults to info)")
 	cmd.PersistentFlags().StringVarP(&images.ImageRegex, "image-regex", "", pkg.ImageRegex,
 		"regex used to split helm template rendered")
 	cmd.PersistentFlags().BoolVarP(&images.UniqueImages, "unique", "u", false,
@@ -35,4 +37,6 @@ func registerGetFlags(cmd *cobra.Command) {
 		"enable the flag display information retrieved in json format (disabled by default)")
 	cmd.PersistentFlags().BoolVarP(&images.YAML, "yaml", "y", false,
 		"enable the flag display information retrieved in yaml format (disabled by default)")
+	cmd.PersistentFlags().BoolVarP(&images.FromRelease, "from-release", "", false,
+		"enable the flag to fetch the images from release instead (disabled by default)")
 }

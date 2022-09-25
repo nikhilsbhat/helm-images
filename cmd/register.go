@@ -5,14 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/nikhilsbhat/helm-images/pkg"
 	"github.com/nikhilsbhat/helm-images/version"
 	"github.com/spf13/cobra"
 )
 
-var images = pkg.Images{}
+var (
+	logLevel string
+	images   = pkg.Images{}
+)
 
 const (
 	getArgumentCount = 2
@@ -30,7 +32,7 @@ func SetImagesCommands() *cobra.Command {
 // Add an entry in below function to register new command.
 func getImagesCommands() *cobra.Command {
 	command := new(imagesCommands)
-	command.commands = append(command.commands, getImagesCommnd())
+	command.commands = append(command.commands, getImagesCommand())
 	command.commands = append(command.commands, getVersionCommand())
 
 	return command.prepareCommands()
@@ -46,13 +48,21 @@ func (c *imagesCommands) prepareCommands() *cobra.Command {
 	return rootCmd
 }
 
-func getImagesCommnd() *cobra.Command {
+func getImagesCommand() *cobra.Command {
 	imageCommand := &cobra.Command{
 		Use:   "get [RELEASE] [CHART] [flags]",
 		Short: "Fetches all images part of deployment",
 		Long:  "Lists all images that matches the pattern or part of specified registry.",
 		Args:  minimumArgError,
-		RunE:  images.GetImages,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			images.SetLogger(logLevel)
+			cmd.SilenceUsage = true
+
+			images.SetRelease(args[0])
+			images.SetChart(args[1])
+
+			return images.GetImages()
+		},
 	}
 	registerGetFlags(imageCommand)
 
@@ -91,7 +101,6 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 	buildInfo, err := json.Marshal(version.GetBuildInfo())
 	if err != nil {
 		log.Fatalf("fetching version of helm-images failed with: %v", err)
-		os.Exit(1)
 	}
 	fmt.Println("images version:", string(buildInfo))
 
