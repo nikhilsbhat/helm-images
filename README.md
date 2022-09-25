@@ -73,10 +73,12 @@ Usage:
   images get [RELEASE] [CHART] [flags]
 
 Flags:
+      --from-release         enable the flag to fetch the images from release instead (disabled by default)
   -h, --help                 help for get
       --image-regex string   regex used to split helm template rendered (default "---\\n# Source:\\s.*.")
   -j, --json                 enable the flag display information retrieved in json format (disabled by default)
-  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet])
+  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet,Pod])
+  -l, --log-level string     log level for the plugin helm images (defaults to info) (default "info")
   -r, --registry strings     registry name (docker images belonging to this registry)
   -u, --unique               enable the flag if duplicates to be removed from the images that are retrieved (disabled by default also overrides --kind)
   -y, --yaml                 enable the flag display information retrieved in yaml format (disabled by default)
