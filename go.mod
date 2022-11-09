@@ -3,6 +3,7 @@ module github.com/nikhilsbhat/helm-images
 go 1.19
 
 require (
+	github.com/cheynewallace/tabby v1.1.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.5.0

@@ -34,6 +34,7 @@ type Images struct {
 	UniqueImages bool
 	JSON         bool
 	YAML         bool
+	Table        bool
 	release      string
 	chart        string
 	log          *logrus.Logger
@@ -183,21 +184,48 @@ func (image *Images) getTemplates(template []byte) []string {
 	return kinds
 }
 
-func (image *Images) filterImagesByRegistries(images []string) []string {
-	if len(image.Registries) == 0 {
+func (image *Images) filterImagesByRegistries(images []*k8s.Image) []*k8s.Image {
+	if !image.UniqueImages && (len(image.Registries) == 0) {
 		return images
 	}
 
-	var filteredImages []string
-	for _, registry := range image.Registries {
+	var imagesFiltered []*k8s.Image
+
+	if image.UniqueImages {
 		for _, img := range images {
-			if strings.HasPrefix(img, registry) {
-				filteredImages = append(filteredImages, img)
+			uniqueImages := getUniqEntries(img.Image)
+			if len(uniqueImages) != 0 {
+				img.Image = uniqueImages
+				imagesFiltered = append(imagesFiltered, img)
+			}
+		}
+		return imagesFiltered
+	}
+
+	var newImagesFiltered []*k8s.Image
+	if len(image.Registries) != 0 {
+		for _, img := range images {
+			uniqueImages := filteredImages(img.Image, image.Registries)
+			if len(uniqueImages) != 0 {
+				img.Image = uniqueImages
+				newImagesFiltered = append(newImagesFiltered, img)
 			}
 		}
 	}
 
-	return filteredImages
+	return newImagesFiltered
+}
+
+func filteredImages(images []string, registries []string) (imagesFiltered []string) {
+	for _, registry := range registries {
+		for _, image := range images {
+			if strings.HasPrefix(image, registry) {
+				imagesFiltered = append(imagesFiltered, image)
+			}
+		}
+	}
+
+	return
 }
 
 func getImagesFromKind(kinds []*k8s.Image) []string {

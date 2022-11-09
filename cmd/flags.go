@@ -34,9 +34,11 @@ func registerGetFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVarP(&images.UniqueImages, "unique", "u", false,
 		"enable the flag if duplicates to be removed from the images that are retrieved (disabled by default also overrides --kind)")
 	cmd.PersistentFlags().BoolVarP(&images.JSON, "json", "j", false,
-		"enable the flag display information retrieved in json format (disabled by default)")
+		"enable the flag to display information retrieved in json format (disabled by default)")
 	cmd.PersistentFlags().BoolVarP(&images.YAML, "yaml", "y", false,
-		"enable the flag display information retrieved in yaml format (disabled by default)")
+		"enable the flag to isplay information retrieved in yaml format (disabled by default)")
+	cmd.PersistentFlags().BoolVarP(&images.Table, "table", "t", false,
+		"enable the flag to display information in table format (disabled by default)")
 	cmd.PersistentFlags().BoolVarP(&images.FromRelease, "from-release", "", false,
 		"enable the flag to fetch the images from release instead (disabled by default)")
 }
