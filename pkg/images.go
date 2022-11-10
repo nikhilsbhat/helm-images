@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -182,50 +181,6 @@ func (image *Images) getTemplates(template []byte) []string {
 	kinds = kinds[1:]
 
 	return kinds
-}
-
-func (image *Images) filterImagesByRegistries(images []*k8s.Image) []*k8s.Image {
-	if !image.UniqueImages && (len(image.Registries) == 0) {
-		return images
-	}
-
-	var imagesFiltered []*k8s.Image
-
-	if image.UniqueImages {
-		for _, img := range images {
-			uniqueImages := getUniqEntries(img.Image)
-			if len(uniqueImages) != 0 {
-				img.Image = uniqueImages
-				imagesFiltered = append(imagesFiltered, img)
-			}
-		}
-		return imagesFiltered
-	}
-
-	var newImagesFiltered []*k8s.Image
-	if len(image.Registries) != 0 {
-		for _, img := range images {
-			uniqueImages := filteredImages(img.Image, image.Registries)
-			if len(uniqueImages) != 0 {
-				img.Image = uniqueImages
-				newImagesFiltered = append(newImagesFiltered, img)
-			}
-		}
-	}
-
-	return newImagesFiltered
-}
-
-func filteredImages(images []string, registries []string) (imagesFiltered []string) {
-	for _, registry := range registries {
-		for _, image := range images {
-			if strings.HasPrefix(image, registry) {
-				imagesFiltered = append(imagesFiltered, image)
-			}
-		}
-	}
-
-	return
 }
 
 func getImagesFromKind(kinds []*k8s.Image) []string {

@@ -10,26 +10,39 @@ import (
 
 func TestImages_filterImages(t *testing.T) {
 	t.Run("should be able to return the filtered image list", func(t *testing.T) {
-		imageList := []string{
-			"quay.io/prometheus/node-exporter:v1.1.2",
-			"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
-			"quay.io/prometheus/alertmanager:v0.21.0",
-			"prom/pushgateway:v1.3.1",
-			"jimmidyson/configmap-reload:v0.5.0",
+		imageKind := k8s.Image{
+			Kind: "Deployment",
+			Name: "sample-deployment",
+			Image: []string{
+				"quay.io/prometheus/node-exporter:v1.1.2",
+				"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+				"quay.io/prometheus/alertmanager:v0.21.0",
+				"prom/pushgateway:v1.3.1",
+				"jimmidyson/configmap-reload:v0.5.0",
+			},
 		}
+
+		imageList := []*k8s.Image{&imageKind}
 
 		imageClient := Images{
 			Registries: []string{"quay.io", "k8s.gcr.io"},
 		}
+		imageClient.SetLogger("info")
 
-		expected := []string{
-			"quay.io/prometheus/node-exporter:v1.1.2",
-			"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
-			"quay.io/prometheus/alertmanager:v0.21.0",
+		expectedImageKind := k8s.Image{
+			Kind: "Deployment",
+			Name: "sample-deployment",
+			Image: []string{
+				"quay.io/prometheus/node-exporter:v1.1.2",
+				"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
+				"quay.io/prometheus/alertmanager:v0.21.0",
+			},
 		}
 
-		filteredImages := imageClient.filterImagesByRegistries(imageList)
-		assert.ElementsMatch(t, expected, filteredImages)
+		expected := []*k8s.Image{&expectedImageKind}
+
+		imagesFiltered := imageClient.filterImagesByRegistries(imageList)
+		assert.ElementsMatch(t, expected[0].Image, imagesFiltered[0].Image)
 	})
 }
 

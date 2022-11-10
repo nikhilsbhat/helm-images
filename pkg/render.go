@@ -15,6 +15,7 @@ func (image *Images) render(images []*k8s.Image) error {
 	imagesFiltered := image.filterImagesByRegistries(images)
 
 	if image.JSON {
+		image.log.Debug("rendering the images in json format since --json is enabled")
 		kindJSON, err := json.MarshalIndent(imagesFiltered, " ", " ")
 		if err != nil {
 			return err
@@ -25,6 +26,7 @@ func (image *Images) render(images []*k8s.Image) error {
 	}
 
 	if image.YAML {
+		image.log.Debug("rendering the images in yaml format since --yaml is enabled")
 		kindYAML, err := yaml.Marshal(imagesFiltered)
 		if err != nil {
 			return err
@@ -36,6 +38,7 @@ func (image *Images) render(images []*k8s.Image) error {
 	}
 
 	if image.Table {
+		image.log.Debug("rendering the images in table format since --table is enabled")
 		table := tabby.New()
 		table.AddHeader("Name", "Kind", "Image")
 		for _, img := range imagesFiltered {
@@ -46,6 +49,7 @@ func (image *Images) render(images []*k8s.Image) error {
 		return nil
 	}
 
+	image.log.Debug("no formart was specified for rendering images, defaulting to list")
 	var imgs []string
 	for _, img := range imagesFiltered {
 		imgs = append(imgs, img.Image...)
