@@ -17,7 +17,8 @@ var (
 )
 
 const (
-	getArgumentCount = 2
+	getArgumentCountLocal   = 2
+	getArgumentCountRelease = 1
 )
 
 type imagesCommands struct {
@@ -51,15 +52,17 @@ func (c *imagesCommands) prepareCommands() *cobra.Command {
 func getImagesCommand() *cobra.Command {
 	imageCommand := &cobra.Command{
 		Use:   "get [RELEASE] [CHART] [flags]",
-		Short: "Fetches all images part of deployment",
-		Long:  "Lists all images that matches the pattern or part of specified registry.",
+		Short: "Fetches all images those are part of specified chart/release",
+		Long:  "Lists all images those are part of specified chart/release and matches the pattern or part of specified registry.",
 		Args:  minimumArgError,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			images.SetLogger(logLevel)
 			cmd.SilenceUsage = true
 
 			images.SetRelease(args[0])
-			images.SetChart(args[1])
+			if !images.FromRelease {
+				images.SetChart(args[1])
+			}
 
 			return images.GetImages()
 		},
@@ -72,8 +75,8 @@ func getImagesCommand() *cobra.Command {
 func getRootCommand() *cobra.Command {
 	rootCommand := &cobra.Command{
 		Use:   "images [command]",
-		Short: "Utility that helps in fetching all images",
-		Long:  `Lists all images that would be part of helm deployment would be listed.`,
+		Short: "Utility that helps in fetching images which are part of deployment",
+		Long:  `Lists all images that would be part of helm deployment.`,
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := cmd.Usage(); err != nil {
@@ -109,11 +112,21 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 
 func minimumArgError(cmd *cobra.Command, args []string) error {
 	minArgError := errors.New("[RELEASE] or [CHART] cannot be empty")
+	oneOfThemError := errors.New("only valid input is [RELEASE] and not both [RELEASE] [CHART]")
 	cmd.SilenceUsage = true
-	if len(args) != getArgumentCount {
-		log.Println(minArgError)
+	fmt.Println(args, len(args))
+	if !images.FromRelease {
+		if len(args) != getArgumentCountLocal {
+			log.Println(minArgError)
 
-		return minArgError
+			return minArgError
+		}
+
+		return nil
+	}
+
+	if len(args) > getArgumentCountRelease {
+		log.Fatalln(oneOfThemError)
 	}
 
 	return nil
