@@ -1,6 +1,8 @@
 package k8s
 
 import (
+	"fmt"
+
 	"github.com/ghodss/yaml"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -52,7 +54,12 @@ func (kin *Kind) Get(dataMap string) (string, error) {
 		return "", err
 	}
 	if len(kindYaml) != 0 {
-		return kindYaml[kubeKind].(string), nil
+		value, ok := kindYaml[kubeKind].(string)
+		if !ok {
+			return "", fmt.Errorf("failed to get kube kind from the manifest, 'kind' is not type string")
+		}
+
+		return value, nil
 	}
 
 	return "", nil

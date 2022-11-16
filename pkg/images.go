@@ -6,11 +6,10 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-
-	"github.com/sirupsen/logrus"
+	"strings"
 
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
-
+	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )
 
@@ -22,6 +21,7 @@ const (
 
 // Images represents GetImages.
 type Images struct {
+	// Registries are list of registry names which we have filter out from
 	Registries   []string
 	Kind         []string
 	Values       []string
@@ -29,6 +29,7 @@ type Images struct {
 	FileValues   []string
 	ImageRegex   string
 	ValueFiles   ValueFiles
+	LogLevel     string
 	FromRelease  bool
 	UniqueImages bool
 	JSON         bool
@@ -154,9 +155,14 @@ func (image *Images) getChartTemplate() ([]byte, error) {
 		flags = append(flags, "--values", valueFile)
 	}
 
+	if strings.ToLower(image.LogLevel) == logrus.DebugLevel.String() {
+		flags = append(flags, "--debug")
+	}
+
 	args := []string{"template", image.release, image.chart}
 	args = append(args, flags...)
 
+	image.log.Debug(fmt.Sprintf("rendering helm chart with following commands/flags '%s'", strings.Join(args, ", ")))
 	cmd := exec.Command(os.Getenv("HELM_BIN"), args...) //nolint:gosec
 	output, err := cmd.Output()
 	if exitError, ok := err.(*exec.ExitError); ok {

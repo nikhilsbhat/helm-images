@@ -3,23 +3,23 @@ linters:
   disable-all: false
   enable-all: true
   disable:
-    - gci
+#    - gci
     - wsl
     - gochecknoglobals
-    - tagliatelle
+#    - tagliatelle
     - exhaustivestruct
-    - nolintlint
+#    - nolintlint
     - exhaustruct
-    - forbidigo
+#    - forbidigo
     - paralleltest
-    - cyclop
+#    - cyclop
     - ireturn
     - wrapcheck
-    - interfacebloat
-    - forcetypeassert
+#    - interfacebloat
+#    - forcetypeassert
     - gochecknoinits
     - errorlint
-    - varnamelen
+#    - varnamelen
     - goerr113
     - testpackage
 
@@ -38,6 +38,9 @@ linters-settings:
   funlen:
     lines: 100
     statements: 60
+  cyclop:
+    max-complexity: 30
+
 
   lll:
     line-length: 140

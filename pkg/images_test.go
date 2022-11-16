@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -56,57 +55,57 @@ func Test_getImages(t *testing.T) {
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    component: "alertmanager"
-    app: prometheus
-    release: prometheus-standalone
-    chart: prometheus-14.4.1
-    heritage: Helm
-  name: prometheus-standalone-alertmanager
+ labels:
+   component: "alertmanager"
+   app: prometheus
+   release: prometheus-standalone
+   chart: prometheus-14.4.1
+   heritage: Helm
+ name: prometheus-standalone-alertmanager
 rules:
-  []
+ []
 ---
 # Source: prometheus/charts/prometheus/templates/pushgateway/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    component: "pushgateway"
-    app: prometheus
-    release: prometheus-standalone
-    chart: prometheus-14.4.1
-    heritage: Helm
-  name: prometheus-standalone-pushgateway
+ labels:
+   component: "pushgateway"
+   app: prometheus
+   release: prometheus-standalone
+   chart: prometheus-14.4.1
+   heritage: Helm
+ name: prometheus-standalone-pushgateway
 rules:
-  []
+ []
 ---
 # Source: prometheus/charts/prometheus/charts/kube-state-metrics/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  labels:
-    app.kubernetes.io/name: kube-state-metrics
-    helm.sh/chart: kube-state-metrics-3.1.1
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/instance: prometheus-standalone
-  name: prometheus-standalone-kube-state-metrics
+ labels:
+   app.kubernetes.io/name: kube-state-metrics
+   helm.sh/chart: kube-state-metrics-3.1.1
+   app.kubernetes.io/managed-by: Helm
+   app.kubernetes.io/instance: prometheus-standalone
+ name: prometheus-standalone-kube-state-metrics
 roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: prometheus-standalone-kube-state-metrics
+ apiGroup: rbac.authorization.k8s.io
+ kind: ClusterRole
+ name: prometheus-standalone-kube-state-metrics
 subjects:
 - kind: ServiceAccount
-  name: prometheus-standalone-kube-state-metrics
-  namespace: test
+ name: prometheus-standalone-kube-state-metrics
+ namespace: test
 ---
 # Source: tracing/templates/jaeger/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: jaeger-ca-cert
+ name: jaeger-ca-cert
 data:
-    CA_CERTIFICATE: |
-        -----BEGIN CERTIFICATE-----
+   CA_CERTIFICATE: |
+       -----BEGIN CERTIFICATE-----
 		OCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$
 		OCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$
 		OCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$
@@ -117,7 +116,7 @@ data:
 		OCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$
 		OCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$
 		OCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$
-        -----END CERTIFICATE-----
+       -----END CERTIFICATE-----
 `
 
 	t.Run("should be able to split rendered templates to individual templates", func(t *testing.T) {

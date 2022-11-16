@@ -25,6 +25,12 @@ quay.io/prometheus/alertmanager:v0.21.0
 prom/pushgateway:v1.3.1
 jimmidyson/configmap-reload:v0.5.0
 quay.io/prometheus/alertmanager:v0.21.0
+
+# using the same plugin can list images which are part of specified release
+helm images get prometheus-standalone --from-release --registry quay.io
+# above command should fetch all the images from a helm release 'prometheus-standalone' by limiting to registry 'quay.io', which results as below:
+quay.io/prometheus/alertmanager:v0.21.0
+quay.io/prometheus/alertmanager:v0.21.0
 ```
 ## Installation
 
@@ -41,14 +47,14 @@ helm images [command] [flags]
 Make sure appropriate command is used for the actions, to check the available commands and flags use `helm images --help`
 
 ```bash
-Lists all images that would be part of helm deployment would be listed.
+Lists all images that would be part of helm deployment.
 
 Usage:
   images [command] [flags]
 
 Available Commands:
-  completion  generate the autocompletion script for the specified shell
-  get         Fetches all images part of deployment
+  completion  Generate the autocompletion script for the specified shell
+  get         Fetches all images those are part of specified chart/release
   help        Help about any command
   version     Command to fetch the version of helm-images installed
 
@@ -67,7 +73,7 @@ Use "images [command] --help" for more information about a command.
 ### `get`
 
 ```shell
-Lists all images that matches the pattern or part of specified registry.
+Lists all images those are part of specified chart/release and matches the pattern or part of specified registry.
 
 Usage:
   images get [RELEASE] [CHART] [flags]
@@ -76,12 +82,13 @@ Flags:
       --from-release         enable the flag to fetch the images from release instead (disabled by default)
   -h, --help                 help for get
       --image-regex string   regex used to split helm template rendered (default "---\\n# Source:\\s.*.")
-  -j, --json                 enable the flag display information retrieved in json format (disabled by default)
+  -j, --json                 enable the flag to display images retrieved in json format (disabled by default)
   -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet,Pod])
   -l, --log-level string     log level for the plugin helm images (defaults to info) (default "info")
   -r, --registry strings     registry name (docker images belonging to this registry)
-  -u, --unique               enable the flag if duplicates to be removed from the images that are retrieved (disabled by default also overrides --kind)
-  -y, --yaml                 enable the flag display information retrieved in yaml format (disabled by default)
+  -t, --table                enable the flag to display images retrieved in table format (disabled by default)
+  -u, --unique               enable the flag if duplicates to be removed from the retrieved list (disabled by default also overrides --kind)
+  -y, --yaml                 enable the flag to display images retrieved in yaml format (disabled by default)
 
 Global Flags:
       --set stringArray          set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)

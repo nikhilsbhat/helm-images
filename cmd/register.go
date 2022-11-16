@@ -1,20 +1,19 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/nikhilsbhat/helm-images/pkg"
 	"github.com/nikhilsbhat/helm-images/version"
 	"github.com/spf13/cobra"
 )
 
-var (
-	logLevel string
-	images   = pkg.Images{}
-)
+var images = pkg.Images{}
 
 const (
 	getArgumentCountLocal   = 2
@@ -56,7 +55,7 @@ func getImagesCommand() *cobra.Command {
 		Long:  "Lists all images those are part of specified chart/release and matches the pattern or part of specified registry.",
 		Args:  minimumArgError,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			images.SetLogger(logLevel)
+			images.SetLogger(images.LogLevel)
 			cmd.SilenceUsage = true
 
 			images.SetRelease(args[0])
@@ -105,16 +104,29 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		log.Fatalf("fetching version of helm-images failed with: %v", err)
 	}
-	fmt.Println("images version:", string(buildInfo))
+
+	writer := bufio.NewWriter(os.Stdout)
+	versionInfo := strings.Join([]string{"images version", string(buildInfo)}, ": ")
+	_, err = writer.Write([]byte(versionInfo))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer func(writer *bufio.Writer) {
+		err = writer.Flush()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(writer)
 
 	return nil
 }
 
 func minimumArgError(cmd *cobra.Command, args []string) error {
 	minArgError := errors.New("[RELEASE] or [CHART] cannot be empty")
-	oneOfThemError := errors.New("only valid input is [RELEASE] and not both [RELEASE] [CHART]")
+	oneOfThemError := errors.New("when '--from-release' is enabled, valid input is [RELEASE] and not both [RELEASE] [CHART]")
 	cmd.SilenceUsage = true
-	fmt.Println(args, len(args))
+
 	if !images.FromRelease {
 		if len(args) != getArgumentCountLocal {
 			log.Println(minArgError)

@@ -15,6 +15,7 @@ func (image *Images) filterImagesByRegistries(images []*k8s.Image) []*k8s.Image 
 	var imagesFiltered []*k8s.Image
 	if image.UniqueImages {
 		image.log.Debug("limiting to unique images since '--unique/-u' is enabled")
+
 		for _, img := range images {
 			uniqueImages := getUniqEntries(img.Image)
 			if len(uniqueImages) != 0 {
@@ -25,6 +26,7 @@ func (image *Images) filterImagesByRegistries(images []*k8s.Image) []*k8s.Image 
 	}
 
 	var newImagesFiltered []*k8s.Image
+
 	imagesToFilter := images
 	if len(image.Registries) != 0 {
 		if image.UniqueImages {
@@ -32,6 +34,7 @@ func (image *Images) filterImagesByRegistries(images []*k8s.Image) []*k8s.Image 
 		}
 		image.log.Debug(fmt.Sprintf("filtering images by the selected registries '%s' since '-r,--registry' is enabled",
 			strings.Join(image.Registries, ", ")))
+
 		for _, img := range imagesToFilter {
 			uniqueImages := filteredImages(img.Image, image.Registries)
 			if len(uniqueImages) != 0 {

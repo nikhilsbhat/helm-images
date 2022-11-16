@@ -27,7 +27,7 @@ func registerGetFlags(cmd *cobra.Command) {
 		k8s.KindCronJob, k8s.KindJob, k8s.KindReplicaSet, k8s.KindPod,
 	},
 		"kubernetes app kind to fetch the images from")
-	cmd.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info",
+	cmd.PersistentFlags().StringVarP(&images.LogLevel, "log-level", "l", "info",
 		"log level for the plugin helm images (defaults to info)")
 	cmd.PersistentFlags().StringVarP(&images.ImageRegex, "image-regex", "", pkg.ImageRegex,
 		"regex used to split helm template rendered")
