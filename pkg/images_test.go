@@ -1,54 +1,18 @@
 package pkg
 
 import (
+	"os"
 	"testing"
 
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestImages_filterImages(t *testing.T) {
-	t.Run("should be able to return the filtered image list", func(t *testing.T) {
-		imageKind := k8s.Image{
-			Kind: "Deployment",
-			Name: "sample-deployment",
-			Image: []string{
-				"quay.io/prometheus/node-exporter:v1.1.2",
-				"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
-				"quay.io/prometheus/alertmanager:v0.21.0",
-				"prom/pushgateway:v1.3.1",
-				"jimmidyson/configmap-reload:v0.5.0",
-			},
-		}
-
-		imageList := []*k8s.Image{&imageKind}
-
-		imageClient := Images{
-			Registries: []string{"quay.io", "k8s.gcr.io"},
-		}
-		imageClient.SetLogger("info")
-
-		expectedImageKind := k8s.Image{
-			Kind: "Deployment",
-			Name: "sample-deployment",
-			Image: []string{
-				"quay.io/prometheus/node-exporter:v1.1.2",
-				"k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0",
-				"quay.io/prometheus/alertmanager:v0.21.0",
-			},
-		}
-
-		expected := []*k8s.Image{&expectedImageKind}
-
-		imagesFiltered := imageClient.filterImagesByRegistries(imageList)
-		assert.ElementsMatch(t, expected[0].Image, imagesFiltered[0].Image)
-	})
-}
-
 func Test_getImages(t *testing.T) {
 	imageClient := Images{
 		ImageRegex: ImageRegex,
 	}
+	imageClient.SetLogger("info")
 	helmTemplate := `
 ---
 # Source: prometheus/charts/prometheus/templates/alertmanager/clusterrole.yaml
@@ -121,12 +85,14 @@ data:
 
 	t.Run("should be able to split rendered templates to individual templates", func(t *testing.T) {
 		expected := []string{
-			"\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    component: \"alertmanager\"\n    app: prometheus\n    release: prometheus-standalone\n    chart: prometheus-14.4.1\n    heritage: Helm\n  name: prometheus-standalone-alertmanager\nrules:\n  []\n",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    //nolint:lll
-			"\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  labels:\n    component: \"pushgateway\"\n    app: prometheus\n    release: prometheus-standalone\n    chart: prometheus-14.4.1\n    heritage: Helm\n  name: prometheus-standalone-pushgateway\nrules:\n  []\n",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      //nolint:lll
-			"\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  labels:\n    app.kubernetes.io/name: kube-state-metrics\n    helm.sh/chart: kube-state-metrics-3.1.1\n    app.kubernetes.io/managed-by: Helm\n    app.kubernetes.io/instance: prometheus-standalone\n  name: prometheus-standalone-kube-state-metrics\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: prometheus-standalone-kube-state-metrics\nsubjects:\n- kind: ServiceAccount\n  name: prometheus-standalone-kube-state-metrics\n  namespace: test\n",                                                                                                                                                                                                                                                                                                                     //nolint:lll
-			"\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: jaeger-ca-cert\ndata:\n    CA_CERTIFICATE: |\n        -----BEGIN CERTIFICATE-----\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n        -----END CERTIFICATE-----\n", //nolint:lll
+			"\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n labels:\n   component: \"alertmanager\"\n   app: prometheus\n   release: prometheus-standalone\n   chart: prometheus-14.4.1\n   heritage: Helm\n name: prometheus-standalone-alertmanager\nrules:\n []\n",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        //nolint:lll
+			"\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n labels:\n   component: \"pushgateway\"\n   app: prometheus\n   release: prometheus-standalone\n   chart: prometheus-14.4.1\n   heritage: Helm\n name: prometheus-standalone-pushgateway\nrules:\n []\n",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          //nolint:lll
+			"\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n labels:\n   app.kubernetes.io/name: kube-state-metrics\n   helm.sh/chart: kube-state-metrics-3.1.1\n   app.kubernetes.io/managed-by: Helm\n   app.kubernetes.io/instance: prometheus-standalone\n name: prometheus-standalone-kube-state-metrics\nroleRef:\n apiGroup: rbac.authorization.k8s.io\n kind: ClusterRole\n name: prometheus-standalone-kube-state-metrics\nsubjects:\n- kind: ServiceAccount\n name: prometheus-standalone-kube-state-metrics\n namespace: test\n",                                                                                                                                                                                                                                                                                                                            //nolint:lll
+			"\napiVersion: v1\nkind: ConfigMap\nmetadata:\n name: jaeger-ca-cert\ndata:\n   CA_CERTIFICATE: |\n       -----BEGIN CERTIFICATE-----\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n\t\tOCOIRRGVEGHEIGHEnwoircne20394809234nfh834retitneh83t5ljfKHD&$&$\n       -----END CERTIFICATE-----\n", //nolint:lll
 		}
 		actual := imageClient.getTemplates([]byte(helmTemplate))
+		assert.Equal(t, len(expected), len(actual))
+		// assert.Equal(t, sort.StringSlice(expected), sort.StringSlice(actual))
 		assert.ElementsMatch(t, expected, actual)
 	})
 }
@@ -146,5 +112,32 @@ func Test_getImagesFromKind(t *testing.T) {
 		}
 		images := getImagesFromKind(kindObj)
 		assert.ElementsMatch(t, expected, images)
+	})
+}
+
+func TestImages_SetRelease(t *testing.T) {
+	t.Run("Should be able to set the release", func(t *testing.T) {
+		imageClient := Images{}
+		imageClient.SetRelease("testRelease")
+
+		assert.Equal(t, imageClient.release, "testRelease")
+	})
+}
+
+func TestImages_SetChart(t *testing.T) {
+	t.Run("Should be able to set the chart", func(t *testing.T) {
+		imageClient := Images{}
+		imageClient.SetChart("testChart")
+
+		assert.Equal(t, imageClient.chart, "testChart")
+	})
+}
+
+func TestImages_SetWriter(t *testing.T) {
+	t.Run("Should be able to set the writer", func(t *testing.T) {
+		imageClient := Images{}
+		imageClient.SetWriter(os.Stdout)
+
+		assert.NotNil(t, imageClient.writer)
 	})
 }

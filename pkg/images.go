@@ -1,7 +1,9 @@
 package pkg
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -38,6 +40,7 @@ type Images struct {
 	release      string
 	chart        string
 	log          *logrus.Logger
+	writer       *bufio.Writer
 }
 
 func (image *Images) SetRelease(release string) {
@@ -46,6 +49,10 @@ func (image *Images) SetRelease(release string) {
 
 func (image *Images) SetChart(chart string) {
 	image.chart = chart
+}
+
+func (image *Images) SetWriter(writer io.Writer) {
+	image.writer = bufio.NewWriter(writer)
 }
 
 // GetImages fetches all available images from the specified chart.

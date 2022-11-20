@@ -56,6 +56,7 @@ func getImagesCommand() *cobra.Command {
 		Args:  minimumArgError,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			images.SetLogger(images.LogLevel)
+			images.SetWriter(os.Stdout)
 			cmd.SilenceUsage = true
 
 			images.SetRelease(args[0])
