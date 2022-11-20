@@ -25,7 +25,8 @@ func TestImages_toYAML(t *testing.T) {
 		}
 		imagesFiltered := []*k8s.Image{&images}
 
-		expected := "---\n- image:\n  - prom/pushgateway:v1.3.1\n  - jimmidyson/configmap-reload:v0.5.0\n  kind: Deployment\n  name: sample-deployment\n"
+		expected := "---\n- image:\n  - prom/pushgateway:v1.3.1\n  - jimmidyson/configmap-reload:v0.5.0\n  " +
+			"kind: Deployment\n  name: sample-deployment\n"
 		err := imageClient.toYAML(imagesFiltered)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, yamlOut.String())
@@ -49,7 +50,8 @@ func TestImages_toJSON(t *testing.T) {
 		}
 		imagesFiltered := []*k8s.Image{&images}
 
-		expected := "[\n  {\n   \"kind\": \"Deployment\",\n   \"name\": \"sample-deployment\",\n   \"image\": [\n    \"prom/pushgateway:v1.3.1\",\n    \"jimmidyson/configmap-reload:v0.5.0\"\n   ]\n  }\n ]"
+		expected := "[\n  {\n   \"kind\": \"Deployment\",\n   \"name\": \"sample-deployment\",\n   " +
+			"\"image\": [\n    \"prom/pushgateway:v1.3.1\",\n    \"jimmidyson/configmap-reload:v0.5.0\"\n   ]\n  }\n ]"
 		err := imageClient.toJSON(imagesFiltered)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, jsonOut.String())

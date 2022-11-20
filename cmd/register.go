@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -53,7 +54,11 @@ func getImagesCommand() *cobra.Command {
 		Use:   "get [RELEASE] [CHART] [flags]",
 		Short: "Fetches all images those are part of specified chart/release",
 		Long:  "Lists all images those are part of specified chart/release and matches the pattern or part of specified registry.",
-		Args:  minimumArgError,
+		Example: `  helm images get prometheus-standalone path/to/chart/prometheus-standalone -f ~/path/to/override-config.yaml
+  helm images get prometheus-standalone --from-release --registry quay.io
+  helm images get prometheus-standalone --from-release --registry quay.io --unique
+  helm images get prometheus-standalone --from-release --registry quay.io --yaml`,
+		Args: minimumArgError,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			images.SetLogger(images.LogLevel)
 			images.SetWriter(os.Stdout)
@@ -62,6 +67,11 @@ func getImagesCommand() *cobra.Command {
 			images.SetRelease(args[0])
 			if !images.FromRelease {
 				images.SetChart(args[1])
+			}
+
+			if (images.JSON && images.YAML && images.Table) || (images.JSON && images.YAML) ||
+				(images.Table && images.YAML) || (images.Table && images.JSON) {
+				return fmt.Errorf("cannot render the output to multiple format, enable any of '--yaml --json --table' at a time")
 			}
 
 			return images.GetImages()

@@ -36,7 +36,7 @@ issues:
 
 linters-settings:
   funlen:
-    lines: 100
+    lines: 160
     statements: 60
   cyclop:
     max-complexity: 30
