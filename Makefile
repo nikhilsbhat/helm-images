@@ -64,5 +64,8 @@ install.hooks: ## install pre-push hooks for the repository.
 generate.mock: ## generates mocks for the selected source packages.
 	@go generate ${SRC_PACKAGES}
 
+generate.document: ## generates cli documents using 'github.com/spf13/cobra/doc'.
+	@go generate github.com/nikhilsbhat/helm-images/docs
+
 test: ## runs test cases
 	@go test ./... -mod=vendor -coverprofile cover.out && go tool cover -html=cover.out -o cover.html && open cover.html

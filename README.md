@@ -99,3 +99,7 @@ Global Flags:
       --set-string stringArray   set STRING values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)
   -f, --values ValueFiles        specify values in a YAML file (can specify multiple) (default [])
 ```
+
+## Documentation
+
+Updated documentation on all available commands and flags can be found [here](https://github.com/nikhilsbhat/helm-images/blob/master/docs/doc/images.md).
