@@ -1,6 +1,32 @@
+
+# dropping IDE data's
+.vscode
 .idea
-/vendor
+
+.DS_Store
+
+# dropping some kubernetes metadata .kube
+.kube
+
+# dropping vendor and other data directories
+vendor/
+
+# dropping local built binaries
 helm-images
+helm-images*
+
+# dropping the templates
+templates-latest/
+
 /dist
+
+# dropping all test results
 cover.out
 cover.html
+
+# dropping all local builds generated for testing
+bin/
+
+# dropping the artifacts that the plugin generates
+helm_images_*.json
+helm_images_*.yaml
