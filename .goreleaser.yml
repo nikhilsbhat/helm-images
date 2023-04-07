@@ -8,11 +8,21 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/nikhilsbhat/helm-images/version.Version={{.Version}} -X github.com/nikhilsbhat/helm-images/version.Env={{.Env.BUILD_ENVIRONMENT}} -X github.com/nikhilsbhat/helm-images/version.BuildDate={{.Date}} -X github.com/nikhilsbhat/helm-images/version.Revision={{.Commit}} -X github.com/nikhilsbhat/helm-images/version.GoVersion={{.Env.GOVERSION}} -X github.com/nikhilsbhat/helm-images/version.Platform={{ .Os }}/{{ .Arch }}
     goos:
       - linux
       - darwin
-    ldflags:
-      - -s -w -X github.com/nikhilsbhat/helm-images/version.Version={{.Version}} -X github.com/nikhilsbhat/helm-images/version.Env={{.Env.BUILD_ENVIRONMENT}} -X github.com/nikhilsbhat/helm-images/version.BuildDate={{.Date}} -X github.com/nikhilsbhat/helm-images/version.Revision={{.Commit}} -X github.com/nikhilsbhat/helm-images/version.GoVersion={{.Env.GOVERSION}} -X github.com/nikhilsbhat/helm-images/version.Platform={{ .Os }}/{{ .Arch }}
+      - freebsd
+      - windows
+    goarch:
+      - amd64
+      - '386'
+      - arm
+      - arm64
+    binary: '{{ .ProjectName }}'
 
 archives:
   - format: tar.gz
@@ -21,17 +31,30 @@ archives:
       linux: Linux
       386: i386
       amd64: x86_64
+      name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
     files:
       - plugin.yaml
       - LICENSE
       - completion.yaml
       - install-binary.sh
 
-checksum:
-  name_template: 'checksums.txt'
-
 snapshot:
   name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
 
 changelog:
   sort: asc
