@@ -81,12 +81,18 @@ Lists all images those are part of specified chart/release and matches the patte
 Usage:
   images get [RELEASE] [CHART] [flags]
 
+Examples:
+  helm images get prometheus-standalone path/to/chart/prometheus-standalone -f ~/path/to/override-config.yaml
+  helm images get prometheus-standalone --from-release --registry quay.io
+  helm images get prometheus-standalone --from-release --registry quay.io --unique
+  helm images get prometheus-standalone --from-release --registry quay.io --yaml
+
 Flags:
       --from-release         enable the flag to fetch the images from release instead (disabled by default)
   -h, --help                 help for get
       --image-regex string   regex used to split helm template rendered (default "---\\n# Source:\\s.*.")
   -j, --json                 enable the flag to display images retrieved in json format (disabled by default)
-  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet,Pod])
+  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet,Pod,Alertmanager,Prometheus,ThanosRuler])
   -l, --log-level string     log level for the plugin helm images (defaults to info) (default "info")
   -r, --registry strings     registry name (docker images belonging to this registry)
   -t, --table                enable the flag to display images retrieved in table format (disabled by default)
@@ -103,3 +109,9 @@ Global Flags:
 ## Documentation
 
 Updated documentation on all available commands and flags can be found [here](https://github.com/nikhilsbhat/helm-images/blob/master/docs/doc/images.md).
+
+## Caveats
+
+The plugin only supports the resources that are defined under flag [--kind](https://github.com/nikhilsbhat/helm-images/blob/master/cmd/flags.go#L25).
+
+Available resources can be found [here](https://github.com/nikhilsbhat/helm-images/blob/master/pkg/k8s/k8s.go#L23).
