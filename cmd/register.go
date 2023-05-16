@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/nikhilsbhat/helm-images/pkg"
+	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	"github.com/nikhilsbhat/helm-images/version"
 	"github.com/spf13/cobra"
 )
@@ -44,6 +45,7 @@ func (c *imagesCommands) prepareCommands() *cobra.Command {
 	for _, cmnd := range c.commands {
 		rootCmd.AddCommand(cmnd)
 	}
+
 	registerFlags(rootCmd)
 
 	return rootCmd
@@ -71,7 +73,9 @@ func getImagesCommand() *cobra.Command {
 
 			if (images.JSON && images.YAML && images.Table) || (images.JSON && images.YAML) ||
 				(images.Table && images.YAML) || (images.Table && images.JSON) {
-				return fmt.Errorf("cannot render the output to multiple format, enable any of '--yaml --json --table' at a time")
+				return &imgErrors.MultipleFormatError{
+					Message: "cannot render the output to multiple format, enable any of '--yaml --json --table' at a time",
+				}
 			}
 
 			return images.GetImages()
@@ -117,7 +121,8 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 	}
 
 	writer := bufio.NewWriter(os.Stdout)
-	versionInfo := strings.Join([]string{"images version", string(buildInfo)}, ": ")
+	versionInfo := fmt.Sprintf("%s \n", strings.Join([]string{"images version", string(buildInfo)}, ": "))
+
 	_, err = writer.Write([]byte(versionInfo))
 	if err != nil {
 		log.Fatalln(err)
@@ -133,6 +138,7 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+//nolint:goerr113
 func minimumArgError(cmd *cobra.Command, args []string) error {
 	minArgError := errors.New("[RELEASE] or [CHART] cannot be empty")
 	oneOfThemError := errors.New("when '--from-release' is enabled, valid input is [RELEASE] and not both [RELEASE] [CHART]")

@@ -3,25 +3,17 @@ linters:
   disable-all: false
   enable-all: true
   disable:
-#    - gci
-    - wsl
     - gochecknoglobals
-#    - tagliatelle
+    - tagliatelle
     - exhaustivestruct
-#    - nolintlint
     - exhaustruct
-#    - forbidigo
+    - forbidigo
     - paralleltest
-#    - cyclop
+    - cyclop
     - ireturn
     - wrapcheck
-#    - interfacebloat
-#    - forcetypeassert
-    - gochecknoinits
-    - errorlint
-#    - varnamelen
-    - goerr113
-    - testpackage
+    - forcetypeassert
+    - maligned
 
 issues:
   exclude-rules:

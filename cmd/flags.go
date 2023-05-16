@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/nikhilsbhat/helm-images/pkg"
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -25,6 +26,7 @@ func registerGetFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringSliceVarP(&images.Kind, "kind", "k", []string{
 		k8s.KindDeployment, k8s.KindStatefulSet, k8s.KindDaemonSet,
 		k8s.KindCronJob, k8s.KindJob, k8s.KindReplicaSet, k8s.KindPod,
+		monitoringv1.AlertmanagersKind, monitoringv1.PrometheusesKind, monitoringv1.ThanosRulerKind,
 	},
 		"kubernetes app kind to fetch the images from")
 	cmd.PersistentFlags().StringVarP(&images.LogLevel, "log-level", "l", "info",

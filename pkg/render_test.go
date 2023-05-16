@@ -1,9 +1,10 @@
-package pkg
+package pkg_test
 
 import (
 	"bytes"
 	"testing"
 
+	"github.com/nikhilsbhat/helm-images/pkg"
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,7 +12,7 @@ import (
 func TestImages_toYAML(t *testing.T) {
 	t.Run("should be able to render the output in yaml format", func(t *testing.T) {
 		yamlOut := &bytes.Buffer{}
-		imageClient := Images{}
+		imageClient := pkg.Images{}
 		imageClient.SetWriter(yamlOut)
 		imageClient.SetLogger("info")
 
@@ -27,7 +28,7 @@ func TestImages_toYAML(t *testing.T) {
 
 		expected := "---\n- image:\n  - prom/pushgateway:v1.3.1\n  - jimmidyson/configmap-reload:v0.5.0\n  " +
 			"kind: Deployment\n  name: sample-deployment\n"
-		err := imageClient.toYAML(imagesFiltered)
+		err := imageClient.ToYAML(imagesFiltered)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, yamlOut.String())
 	})
@@ -36,7 +37,7 @@ func TestImages_toYAML(t *testing.T) {
 func TestImages_toJSON(t *testing.T) {
 	t.Run("should be able to render the output in json format", func(t *testing.T) {
 		jsonOut := &bytes.Buffer{}
-		imageClient := Images{}
+		imageClient := pkg.Images{}
 		imageClient.SetWriter(jsonOut)
 		imageClient.SetLogger("info")
 
@@ -52,7 +53,7 @@ func TestImages_toJSON(t *testing.T) {
 
 		expected := "[\n  {\n   \"kind\": \"Deployment\",\n   \"name\": \"sample-deployment\",\n   " +
 			"\"image\": [\n    \"prom/pushgateway:v1.3.1\",\n    \"jimmidyson/configmap-reload:v0.5.0\"\n   ]\n  }\n ]"
-		err := imageClient.toJSON(imagesFiltered)
+		err := imageClient.ToJSON(imagesFiltered)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, jsonOut.String())
 	})

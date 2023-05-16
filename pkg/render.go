@@ -3,6 +3,7 @@ package pkg
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/cheynewallace/tabby"
@@ -11,10 +12,10 @@ import (
 )
 
 func (image *Images) render(images []*k8s.Image) error {
-	imagesFiltered := image.filterImagesByRegistries(images)
+	imagesFiltered := image.FilterImagesByRegistries(images)
 
 	if image.JSON {
-		if err := image.toJSON(imagesFiltered); err != nil {
+		if err := image.ToJSON(imagesFiltered); err != nil {
 			return err
 		}
 
@@ -22,7 +23,7 @@ func (image *Images) render(images []*k8s.Image) error {
 	}
 
 	if image.YAML {
-		if err := image.toYAML(imagesFiltered); err != nil {
+		if err := image.ToYAML(imagesFiltered); err != nil {
 			return err
 		}
 
@@ -36,19 +37,19 @@ func (image *Images) render(images []*k8s.Image) error {
 	}
 
 	image.log.Debug("no formart was specified for rendering images, defaulting to list")
-	imgs := getImagesFromKind(imagesFiltered)
+
+	imags := GetImagesFromKind(imagesFiltered)
 
 	if image.UniqueImages {
-		imgs = getUniqEntries(imgs)
+		imags = GetUniqEntries(imags)
 	}
 
-	_, err := image.writer.Write([]byte(strings.Join(imgs, "\n")))
-	if err != nil {
+	if _, err := image.writer.Write([]byte(fmt.Sprintf("%s\n", strings.Join(imags, "\n")))); err != nil {
 		image.log.Fatalln(err)
 	}
 
 	defer func(writer *bufio.Writer) {
-		err = writer.Flush()
+		err := writer.Flush()
 		if err != nil {
 			image.log.Fatalln(err)
 		}
@@ -62,6 +63,7 @@ func (image *Images) toTABLE(imagesFiltered []*k8s.Image) {
 
 	table := tabby.New()
 	table.AddHeader("Name", "Kind", "Image")
+
 	for _, img := range imagesFiltered {
 		table.AddLine(img.Name, img.Kind, strings.Join(img.Image, ", "))
 	}
@@ -69,8 +71,9 @@ func (image *Images) toTABLE(imagesFiltered []*k8s.Image) {
 	table.Print()
 }
 
-func (image *Images) toYAML(imagesFiltered []*k8s.Image) error {
+func (image *Images) ToYAML(imagesFiltered []*k8s.Image) error {
 	image.log.Debug("rendering the images in yaml format since --yaml is enabled")
+
 	kindYAML, err := yaml.Marshal(imagesFiltered)
 	if err != nil {
 		return err
@@ -78,8 +81,7 @@ func (image *Images) toYAML(imagesFiltered []*k8s.Image) error {
 
 	yamlString := strings.Join([]string{"---", string(kindYAML)}, "\n")
 
-	_, err = image.writer.Write([]byte(yamlString))
-	if err != nil {
+	if _, err = image.writer.Write([]byte(yamlString)); err != nil {
 		image.log.Fatalln(err)
 	}
 
@@ -93,15 +95,15 @@ func (image *Images) toYAML(imagesFiltered []*k8s.Image) error {
 	return nil
 }
 
-func (image *Images) toJSON(imagesFiltered []*k8s.Image) error {
+func (image *Images) ToJSON(imagesFiltered []*k8s.Image) error {
 	image.log.Debug("rendering the images in json format since --json is enabled")
+
 	kindJSON, err := json.MarshalIndent(imagesFiltered, " ", " ")
 	if err != nil {
 		return err
 	}
 
-	_, err = image.writer.Write(kindJSON)
-	if err != nil {
+	if _, err = image.writer.Write(kindJSON); err != nil {
 		image.log.Fatalln(err)
 	}
 

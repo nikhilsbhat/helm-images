@@ -1,8 +1,9 @@
-package pkg
+package pkg_test
 
 import (
 	"testing"
 
+	"github.com/nikhilsbhat/helm-images/pkg"
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +24,7 @@ func TestImages_filterImagesByRegistries(t *testing.T) {
 
 		imageList := []*k8s.Image{&imageKind}
 
-		imageClient := Images{
+		imageClient := pkg.Images{
 			Registries: []string{"quay.io", "k8s.gcr.io"},
 		}
 		imageClient.SetLogger("info")
@@ -40,7 +41,7 @@ func TestImages_filterImagesByRegistries(t *testing.T) {
 
 		expected := []*k8s.Image{&expectedImageKind}
 
-		imagesFiltered := imageClient.filterImagesByRegistries(imageList)
+		imagesFiltered := imageClient.FilterImagesByRegistries(imageList)
 		assert.ElementsMatch(t, expected[0].Image, imagesFiltered[0].Image)
 	})
 
@@ -59,13 +60,13 @@ func TestImages_filterImagesByRegistries(t *testing.T) {
 
 		imageList := []*k8s.Image{&imageKind}
 
-		imageClient := Images{
+		imageClient := pkg.Images{
 			Registries: []string{"qquay.io"},
 		}
 
 		imageClient.SetLogger("info")
 
-		imagesFiltered := imageClient.filterImagesByRegistries(imageList)
+		imagesFiltered := imageClient.FilterImagesByRegistries(imageList)
 		assert.Nil(t, imagesFiltered)
 	})
 
@@ -85,7 +86,7 @@ func TestImages_filterImagesByRegistries(t *testing.T) {
 
 		imageList := []*k8s.Image{&imageKind}
 
-		imageClient := Images{
+		imageClient := pkg.Images{
 			Registries:   []string{"quay.io"},
 			UniqueImages: true,
 		}
@@ -102,7 +103,7 @@ func TestImages_filterImagesByRegistries(t *testing.T) {
 		}
 		expected := []*k8s.Image{&expectedImageKind}
 
-		imagesFiltered := imageClient.filterImagesByRegistries(imageList)
+		imagesFiltered := imageClient.FilterImagesByRegistries(imageList)
 		assert.Equal(t, expected, imagesFiltered)
 	})
 
@@ -121,11 +122,11 @@ func TestImages_filterImagesByRegistries(t *testing.T) {
 
 		imageList := []*k8s.Image{&imageKind}
 
-		imageClient := Images{}
+		imageClient := pkg.Images{}
 
 		imageClient.SetLogger("info")
 
-		imagesFiltered := imageClient.filterImagesByRegistries(imageList)
+		imagesFiltered := imageClient.FilterImagesByRegistries(imageList)
 		assert.ElementsMatch(t, imageList[0].Image, imagesFiltered[0].Image)
 	})
 
@@ -145,7 +146,7 @@ func TestImages_filterImagesByRegistries(t *testing.T) {
 
 		imageList := []*k8s.Image{&imageKind}
 
-		imageClient := Images{
+		imageClient := pkg.Images{
 			UniqueImages: true,
 		}
 		imageClient.SetLogger("info")
@@ -164,7 +165,7 @@ func TestImages_filterImagesByRegistries(t *testing.T) {
 
 		expected := []*k8s.Image{&expectedImageKind}
 
-		imagesFiltered := imageClient.filterImagesByRegistries(imageList)
+		imagesFiltered := imageClient.FilterImagesByRegistries(imageList)
 		assert.ElementsMatch(t, expected[0].Image, imagesFiltered[0].Image)
 	})
 }
@@ -183,7 +184,7 @@ func Test_filteredImages(t *testing.T) {
 			"quay.io/prometheus/node-exporter:v1.1.2",
 		}
 
-		actual := filteredImages(images, registries)
+		actual := pkg.FilteredImages(images, registries)
 		assert.ElementsMatch(t, actual, expected)
 	})
 
@@ -200,7 +201,7 @@ func Test_filteredImages(t *testing.T) {
 			"quay.io/prometheus/node-exporter:v1.1.2",
 		}
 
-		actual := filteredImages(images, registries)
+		actual := pkg.FilteredImages(images, registries)
 		assert.ElementsMatch(t, actual, expected)
 	})
 }

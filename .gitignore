@@ -30,3 +30,6 @@ bin/
 # dropping the artifacts that the plugin generates
 helm_images_*.json
 helm_images_*.yaml
+
+# dropping charts used for testing
+example/chart/kube-prometheus-stack

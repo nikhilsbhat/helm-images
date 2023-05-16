@@ -16,6 +16,7 @@ func (image *Images) GetImagesFromRelease() ([]byte, error) {
 	image.log.Debug(fmt.Sprintf("fetching chart manifest for release '%s' from kube cluster", image.release))
 
 	actionConfig := new(action.Configuration)
+
 	if err := actionConfig.Init(settings.RESTClientGetter(), settings.Namespace(), os.Getenv("HELM_DRIVER"), log.Printf); err != nil {
 		image.log.Error("oops initialising helm client errored with", err)
 
@@ -23,6 +24,7 @@ func (image *Images) GetImagesFromRelease() ([]byte, error) {
 	}
 
 	client := action.NewGet(actionConfig)
+
 	release, err := client.Run(image.release)
 	if err != nil {
 		return nil, err
