@@ -26,7 +26,7 @@ images get [RELEASE] [CHART] [flags]
   -h, --help                 help for get
       --image-regex string   regex used to split helm template rendered (default "---\\n# Source:\\s.*.")
   -j, --json                 enable the flag to display images retrieved in json format (disabled by default)
-  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet,Pod])
+  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet,Pod,Alertmanager,Prometheus,ThanosRuler,Grafana])
   -l, --log-level string     log level for the plugin helm images (defaults to info) (default "info")
   -r, --registry strings     registry name (docker images belonging to this registry)
   -t, --table                enable the flag to display images retrieved in table format (disabled by default)
