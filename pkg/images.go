@@ -11,8 +11,9 @@ import (
 	"regexp"
 	"strings"
 
+	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	monitoringV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 )
@@ -151,27 +152,42 @@ func (image *Images) GetImages() error {
 			}
 
 			images = append(images, job)
-		case monitoringv1.AlertmanagersKind:
+		case monitoringV1.AlertmanagersKind:
 			alertManager, err := k8s.NewAlertManager().Get(kubeKindTemplate)
 			if err != nil {
 				return err
 			}
 
 			images = append(images, alertManager)
-		case monitoringv1.PrometheusesKind:
+		case monitoringV1.PrometheusesKind:
 			prometheus, err := k8s.NewPrometheus().Get(kubeKindTemplate)
 			if err != nil {
 				return err
 			}
 
 			images = append(images, prometheus)
-		case monitoringv1.ThanosRulerKind:
+		case monitoringV1.ThanosRulerKind:
 			thanosRuler, err := k8s.NewThanosRuler().Get(kubeKindTemplate)
 			if err != nil {
 				return err
 			}
 
 			images = append(images, thanosRuler)
+		case k8s.KindGrafana:
+			grafana, err := k8s.NewGrafana().Get(kubeKindTemplate)
+
+			grafanaErr := &imgErrors.GrafanaAPIVersionSupportError{}
+			if err != nil {
+				if errors.As(err, &grafanaErr) {
+					image.log.Debugf("fetching images from Kind Grafana errored with %s", err.Error())
+
+					continue
+				} else {
+					return err
+				}
+			}
+
+			images = append(images, grafana)
 		default:
 			image.log.Debug(fmt.Sprintf("kind '%s' is not supported at the moment", currentKind))
 		}

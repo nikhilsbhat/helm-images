@@ -27,6 +27,7 @@ func registerGetFlags(cmd *cobra.Command) {
 		k8s.KindDeployment, k8s.KindStatefulSet, k8s.KindDaemonSet,
 		k8s.KindCronJob, k8s.KindJob, k8s.KindReplicaSet, k8s.KindPod,
 		monitoringv1.AlertmanagersKind, monitoringv1.PrometheusesKind, monitoringv1.ThanosRulerKind,
+		k8s.KindGrafana,
 	},
 		"kubernetes app kind to fetch the images from")
 	cmd.PersistentFlags().StringVarP(&images.LogLevel, "log-level", "l", "info",

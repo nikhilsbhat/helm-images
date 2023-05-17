@@ -1,12 +1,15 @@
 package k8s
 
 import (
+	"fmt"
+
 	"github.com/ghodss/yaml"
+	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
 	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
-	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
+	monitoringV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	appsV1 "k8s.io/api/apps/v1"
+	batchV1 "k8s.io/api/batch/v1"
+	coreV1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -17,24 +20,26 @@ const (
 	KindJob         = "Job"
 	KindReplicaSet  = "ReplicaSet"
 	KindPod         = "Pod"
+	KindGrafana     = "Grafana"
 	kubeKind        = "kind"
 )
 
 type (
-	Deployments  appsv1.Deployment
-	StatefulSets appsv1.StatefulSet
-	DaemonSets   appsv1.DaemonSet
-	ReplicaSets  appsv1.ReplicaSet
-	CronJob      batchv1.CronJob
-	Job          batchv1.Job
-	Pod          corev1.Pod
+	Deployments  appsV1.Deployment
+	StatefulSets appsV1.StatefulSet
+	DaemonSets   appsV1.DaemonSet
+	ReplicaSets  appsV1.ReplicaSet
+	CronJob      batchV1.CronJob
+	Job          batchV1.Job
+	Pod          coreV1.Pod
 	Kind         map[string]interface{}
 	containers   struct {
-		containers []corev1.Container
+		containers []coreV1.Container
 	}
-	AlertManager monitoringv1.Alertmanager
-	Prometheus   monitoringv1.Prometheus
-	ThanosRuler  monitoringv1.ThanosRuler
+	AlertManager monitoringV1.Alertmanager
+	Prometheus   monitoringV1.Prometheus
+	ThanosRuler  monitoringV1.ThanosRuler
+	Grafana      grafanaBetaV1.Grafana
 )
 
 type KindInterface interface {
@@ -189,7 +194,7 @@ func (dep *AlertManager) Get(dataMap string) (*Image, error) {
 	}
 
 	images := &Image{
-		Kind:  monitoringv1.AlertmanagersKind,
+		Kind:  monitoringV1.AlertmanagersKind,
 		Name:  dep.Name,
 		Image: []string{*dep.Spec.Image},
 	}
@@ -210,7 +215,7 @@ func (dep *Prometheus) Get(dataMap string) (*Image, error) {
 	imageNames = append(imageNames, *dep.Spec.Image)
 
 	images := &Image{
-		Kind:  monitoringv1.PrometheusesKind,
+		Kind:  monitoringV1.PrometheusesKind,
 		Name:  dep.Name,
 		Image: imageNames,
 	}
@@ -231,9 +236,32 @@ func (dep *ThanosRuler) Get(dataMap string) (*Image, error) {
 	imageNames = append(imageNames, dep.Spec.Image)
 
 	images := &Image{
-		Kind:  monitoringv1.ThanosRulerKind,
+		Kind:  monitoringV1.ThanosRulerKind,
 		Name:  dep.Name,
 		Image: imageNames,
+	}
+
+	return images, nil
+}
+
+func (dep *Grafana) Get(dataMap string) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+
+	if dep.APIVersion == "integreatly.org/v1alpha1" {
+		return nil, &imgErrors.GrafanaAPIVersionSupportError{
+			Message: fmt.Sprintf("plugin supports the latest api version and '%s' is not supported", dep.APIVersion),
+		}
+	}
+
+	grafanaDeployment := dep.Spec.Deployment.Spec.Template.Spec
+	depContainers := containers{append(grafanaDeployment.Containers, grafanaDeployment.InitContainers...)}
+
+	images := &Image{
+		Kind:  KindGrafana,
+		Name:  dep.Name,
+		Image: depContainers.getImages(),
 	}
 
 	return images, nil
@@ -277,6 +305,10 @@ func NewPrometheus() ImagesInterface {
 
 func NewThanosRuler() ImagesInterface {
 	return &ThanosRuler{}
+}
+
+func NewGrafana() ImagesInterface {
+	return &Grafana{}
 }
 
 func NewKind() KindInterface {
