@@ -3,6 +3,7 @@ package k8s
 import (
 	"fmt"
 
+	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
 	"github.com/ghodss/yaml"
 	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
 	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
@@ -13,15 +14,17 @@ import (
 )
 
 const (
-	KindDeployment  = "Deployment"
-	KindStatefulSet = "StatefulSet"
-	KindDaemonSet   = "DaemonSet"
-	KindCronJob     = "CronJob"
-	KindJob         = "Job"
-	KindReplicaSet  = "ReplicaSet"
-	KindPod         = "Pod"
-	KindGrafana     = "Grafana"
-	kubeKind        = "kind"
+	KindDeployment     = "Deployment"
+	KindStatefulSet    = "StatefulSet"
+	KindDaemonSet      = "DaemonSet"
+	KindCronJob        = "CronJob"
+	KindJob            = "Job"
+	KindReplicaSet     = "ReplicaSet"
+	KindPod            = "Pod"
+	KindGrafana        = "Grafana"
+	KindThanos         = "Thanos"
+	KindThanosReceiver = "Receiver"
+	kubeKind           = "kind"
 )
 
 type (
@@ -36,10 +39,12 @@ type (
 	containers   struct {
 		containers []coreV1.Container
 	}
-	AlertManager monitoringV1.Alertmanager
-	Prometheus   monitoringV1.Prometheus
-	ThanosRuler  monitoringV1.ThanosRuler
-	Grafana      grafanaBetaV1.Grafana
+	AlertManager   monitoringV1.Alertmanager
+	Prometheus     monitoringV1.Prometheus
+	ThanosRuler    monitoringV1.ThanosRuler
+	Grafana        grafanaBetaV1.Grafana
+	Thanos         thanosAlphaV1.Thanos
+	ThanosReceiver thanosAlphaV1.Receiver
 )
 
 type KindInterface interface {
@@ -267,6 +272,49 @@ func (dep *Grafana) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+func (dep *Thanos) Get(dataMap string) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+
+	thanosContainers := append(dep.Spec.Rule.StatefulsetOverrides.Spec.Template.Spec.Containers, dep.Spec.Rule.StatefulsetOverrides.Spec.Template.Spec.InitContainers...)
+	thanosContainers = append(dep.Spec.Query.DeploymentOverrides.Spec.Template.Spec.Containers, dep.Spec.Query.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
+	thanosContainers = append(dep.Spec.StoreGateway.DeploymentOverrides.Spec.Template.Spec.Containers, dep.Spec.StoreGateway.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
+	thanosContainers = append(dep.Spec.QueryFrontend.DeploymentOverrides.Spec.Template.Spec.Containers, dep.Spec.QueryFrontend.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
+
+	depContainers := containers{thanosContainers}
+
+	images := &Image{
+		Kind:  KindThanos,
+		Name:  dep.Name,
+		Image: depContainers.getImages(),
+	}
+
+	return images, nil
+}
+
+func (dep *ThanosReceiver) Get(dataMap string) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+
+	var receiverGroupTotalContainers []coreV1.Container
+	for _, receiverGroup := range dep.Spec.ReceiverGroups {
+		receiverGroupContainers := append(receiverGroup.StatefulSetOverrides.Spec.Template.Spec.Containers, receiverGroup.StatefulSetOverrides.Spec.Template.Spec.InitContainers...)
+		receiverGroupTotalContainers = append(receiverGroupTotalContainers, receiverGroupContainers...)
+	}
+
+	depContainers := containers{receiverGroupTotalContainers}
+
+	images := &Image{
+		Kind:  KindThanosReceiver,
+		Name:  dep.Name,
+		Image: depContainers.getImages(),
+	}
+
+	return images, nil
+}
+
 func NewDeployment() ImagesInterface {
 	return &Deployments{}
 }
@@ -311,8 +359,26 @@ func NewGrafana() ImagesInterface {
 	return &Grafana{}
 }
 
+func NewThanos() ImagesInterface {
+	return &Thanos{}
+}
+
+func NewThanosReceiver() ImagesInterface {
+	return &ThanosReceiver{}
+}
+
 func NewKind() KindInterface {
 	return &Kind{}
+}
+
+func SupportedKinds() []string {
+	kinds := []string{
+		KindDeployment, KindStatefulSet, KindDaemonSet,
+		KindCronJob, KindJob, KindReplicaSet, KindPod,
+		monitoringV1.AlertmanagersKind, monitoringV1.PrometheusesKind, monitoringV1.ThanosRulerKind,
+		KindGrafana, KindThanos, KindThanosReceiver,
+	}
+	return kinds
 }
 
 func (cont containers) getImages() []string {

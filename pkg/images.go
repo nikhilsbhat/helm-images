@@ -173,6 +173,20 @@ func (image *Images) GetImages() error {
 			}
 
 			images = append(images, thanosRuler)
+		case k8s.KindThanos:
+			thanos, err := k8s.NewThanos().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+
+			images = append(images, thanos)
+		case k8s.KindThanosReceiver:
+			thanosReceiver, err := k8s.NewThanosReceiver().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+
+			images = append(images, thanosReceiver)
 		case k8s.KindGrafana:
 			grafana, err := k8s.NewGrafana().Get(kubeKindTemplate)
 

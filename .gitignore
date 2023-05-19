@@ -34,3 +34,4 @@ helm_images_*.yaml
 # dropping charts used for testing
 example/chart/kube-prometheus-stack
 example/chart/grafana-operator
+example/chart/strimzi
