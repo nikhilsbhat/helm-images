@@ -14,6 +14,8 @@ linters:
     - wrapcheck
     - forcetypeassert
     - maligned
+    - depguard
+    - dupword
 
 issues:
   exclude-rules:
@@ -27,12 +29,15 @@ issues:
       text: "unnecessaryDefer:"
 
 linters-settings:
+  gocyclo:
+    min-complexity: 40
+
   funlen:
     lines: 160
     statements: 60
+
   cyclop:
     max-complexity: 30
-
 
   lll:
     line-length: 140

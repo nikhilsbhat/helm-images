@@ -52,7 +52,7 @@ func (image *Images) FilterImagesByRegistries(images []*k8s.Image) []*k8s.Image 
 	return imagesFiltered
 }
 
-func FilteredImages(images []string, registries []string) []string {
+func FilteredImages(images, registries []string) []string {
 	var imagesFiltered []string
 
 	for _, registry := range registries {

@@ -25,12 +25,12 @@ var (
 
 // BuildInfo represents version of utility.
 type BuildInfo struct {
-	Version     string
-	Revision    string
-	Environment string
-	BuildDate   string
-	GoVersion   string
-	Platform    string
+	Version     string `json:"version,omitempty"`
+	Revision    string `json:"revision,omitempty"`
+	Environment string `json:"environment,omitempty"`
+	BuildDate   string `json:"build-date,omitempty"`
+	GoVersion   string `json:"go-version,omitempty"`
+	Platform    string `json:"platform,omitempty"`
 }
 
 // GetBuildInfo return the version and other build info of the application.

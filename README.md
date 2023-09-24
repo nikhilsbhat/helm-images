@@ -13,11 +13,11 @@ This helm plugins helps in identifying all images that would be part of helm cha
 
 ## Introduction
 
-Identifying all images just before the deployment of the helm chart is not a straightforward task.
+Identifying all images just before the deployment of the helm chart is not a straight-forward task.
 
-To make it simple, the helm plugin is leveraged. This can be installed as an add-on to the helm.
+This Helm plugin was created to ease this task. This can be installed as an add-on to the helm.
 
-It helps in filtering images based on the Kubernetes type. It also helps in filtering images based on a registry which it is part of.
+It helps in filtering images based on the Kubernetes type. It also helps in filtering images based on a registry that it is part of.
 
 ```shell
 helm images get prometheus-standalone ~/prometheus-setup/prometheus-standalone -f ~/prometheus-setup/prometheus-standalone/values-standalone-1.yaml
@@ -112,8 +112,8 @@ Updated documentation on all available commands and flags can be found [here](ht
 
 ## Caveats
 
-If the plugin is not listing the expected images, then most likely the `helm images plugin` does not support fetching images from the `workload` that it is part of.
-Invoking the plugin with log-level set to `debug` should give information if the plugin is not supporting the workload..
+If the plugin is not listing the expected images, then most likely the `helm images plugin` does not support fetching images from the `workload` that it is part of.</br>
+Invoking the plugin with log-level set to `debug` should give information if the plugin is not supporting the workload.
 
 The plugin only supports the resources that are defined under flag [--kind](https://github.com/nikhilsbhat/helm-images/blob/master/cmd/flags.go#L25).
 

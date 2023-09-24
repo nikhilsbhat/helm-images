@@ -93,11 +93,7 @@ func getRootCommand() *cobra.Command {
 		Long:  `Lists all images that would be part of helm deployment.`,
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := cmd.Usage(); err != nil {
-				return err
-			}
-
-			return nil
+			return cmd.Usage()
 		},
 	}
 	rootCommand.SetUsageTemplate(getUsageTemplate())
@@ -114,7 +110,7 @@ func getVersionCommand() *cobra.Command {
 	}
 }
 
-func versionConfig(cmd *cobra.Command, args []string) error {
+func versionConfig(_ *cobra.Command, _ []string) error {
 	buildInfo, err := json.Marshal(version.GetBuildInfo())
 	if err != nil {
 		log.Fatalf("fetching version of helm-images failed with: %v", err)
@@ -123,7 +119,7 @@ func versionConfig(cmd *cobra.Command, args []string) error {
 	writer := bufio.NewWriter(os.Stdout)
 	versionInfo := fmt.Sprintf("%s \n", strings.Join([]string{"images version", string(buildInfo)}, ": "))
 
-	_, err = writer.Write([]byte(versionInfo))
+	_, err = writer.WriteString(versionInfo)
 	if err != nil {
 		log.Fatalln(err)
 	}

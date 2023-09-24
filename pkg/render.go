@@ -15,19 +15,11 @@ func (image *Images) render(images []*k8s.Image) error {
 	imagesFiltered := image.FilterImagesByRegistries(images)
 
 	if image.JSON {
-		if err := image.ToJSON(imagesFiltered); err != nil {
-			return err
-		}
-
-		return nil
+		return image.ToJSON(imagesFiltered)
 	}
 
 	if image.YAML {
-		if err := image.ToYAML(imagesFiltered); err != nil {
-			return err
-		}
-
-		return nil
+		return image.ToYAML(imagesFiltered)
 	}
 
 	if image.Table {
@@ -36,7 +28,7 @@ func (image *Images) render(images []*k8s.Image) error {
 		return nil
 	}
 
-	image.log.Debug("no formart was specified for rendering images, defaulting to list")
+	image.log.Debug("no format was specified for rendering images, defaulting to list")
 
 	imags := GetImagesFromKind(imagesFiltered)
 

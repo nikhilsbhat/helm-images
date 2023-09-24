@@ -277,10 +277,15 @@ func (dep *Thanos) Get(dataMap string) (*Image, error) {
 		return nil, err
 	}
 
-	thanosContainers := append(dep.Spec.Rule.StatefulsetOverrides.Spec.Template.Spec.Containers, dep.Spec.Rule.StatefulsetOverrides.Spec.Template.Spec.InitContainers...)
-	thanosContainers = append(dep.Spec.Query.DeploymentOverrides.Spec.Template.Spec.Containers, dep.Spec.Query.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
-	thanosContainers = append(dep.Spec.StoreGateway.DeploymentOverrides.Spec.Template.Spec.Containers, dep.Spec.StoreGateway.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
-	thanosContainers = append(dep.Spec.QueryFrontend.DeploymentOverrides.Spec.Template.Spec.Containers, dep.Spec.QueryFrontend.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
+	thanosContainers := make([]coreV1.Container, 0)
+	thanosContainers = append(thanosContainers, dep.Spec.Rule.StatefulsetOverrides.Spec.Template.Spec.Containers...)
+	thanosContainers = append(thanosContainers, dep.Spec.Rule.StatefulsetOverrides.Spec.Template.Spec.InitContainers...)
+	thanosContainers = append(thanosContainers, dep.Spec.Query.DeploymentOverrides.Spec.Template.Spec.Containers...)
+	thanosContainers = append(thanosContainers, dep.Spec.Query.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
+	thanosContainers = append(thanosContainers, dep.Spec.StoreGateway.DeploymentOverrides.Spec.Template.Spec.Containers...)
+	thanosContainers = append(thanosContainers, dep.Spec.StoreGateway.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
+	thanosContainers = append(thanosContainers, dep.Spec.QueryFrontend.DeploymentOverrides.Spec.Template.Spec.Containers...)
+	thanosContainers = append(thanosContainers, dep.Spec.QueryFrontend.DeploymentOverrides.Spec.Template.Spec.InitContainers...)
 
 	depContainers := containers{thanosContainers}
 
@@ -298,10 +303,12 @@ func (dep *ThanosReceiver) Get(dataMap string) (*Image, error) {
 		return nil, err
 	}
 
-	var receiverGroupTotalContainers []coreV1.Container
+	receiverGroupTotalContainers := make([]coreV1.Container, 0)
+
 	for _, receiverGroup := range dep.Spec.ReceiverGroups {
-		receiverGroupContainers := append(receiverGroup.StatefulSetOverrides.Spec.Template.Spec.Containers, receiverGroup.StatefulSetOverrides.Spec.Template.Spec.InitContainers...)
-		receiverGroupTotalContainers = append(receiverGroupTotalContainers, receiverGroupContainers...)
+		receiverGroupTotalContainers = append(receiverGroupTotalContainers, receiverGroup.StatefulSetOverrides.Spec.Template.Spec.Containers...)
+		receiverGroupTotalContainers = append(receiverGroupTotalContainers,
+			receiverGroup.StatefulSetOverrides.Spec.Template.Spec.InitContainers...)
 	}
 
 	depContainers := containers{receiverGroupTotalContainers}
@@ -378,6 +385,7 @@ func SupportedKinds() []string {
 		monitoringV1.AlertmanagersKind, monitoringV1.PrometheusesKind, monitoringV1.ThanosRulerKind,
 		KindGrafana, KindThanos, KindThanosReceiver,
 	}
+
 	return kinds
 }
 

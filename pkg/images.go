@@ -196,9 +196,9 @@ func (image *Images) GetImages() error {
 					image.log.Debugf("fetching images from Kind Grafana errored with %s", err.Error())
 
 					continue
-				} else {
-					return err
 				}
+
+				return err
 			}
 
 			images = append(images, grafana)
