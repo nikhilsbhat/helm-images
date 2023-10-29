@@ -20,9 +20,24 @@ function exit_trap() {
   exit $result
 }
 
+function setOSArch() {
+    arch=$1
+
+    case "$arch" in
+      "aarch64")
+      echo "arm64"
+      ;;
+      *)
+      echo $arch
+      ;;
+    esac
+}
+
 function download_plugin() {
   osName=$(uname -s)
   osArch=$(uname -m)
+
+  osArch=$(setOSArch $osArch)
 
   OUTPUT_BASENAME=helm-images
   version=$(grep version "$HELM_PLUGIN_DIR/plugin.yaml" | cut -d'"' -f2)
