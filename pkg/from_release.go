@@ -8,8 +8,8 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 )
 
-// GetImagesFromRelease should get the manifest from the selected release.
-func (image *Images) GetImagesFromRelease() ([]byte, error) {
+// getChartFromRelease should get the manifests from the selected release.
+func (image *Images) getChartFromRelease() ([]byte, error) {
 	settings := cli.New()
 
 	image.log.Debugf("fetching chart manifest for release '%s' from kube cluster", image.release)
