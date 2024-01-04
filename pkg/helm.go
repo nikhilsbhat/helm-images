@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -13,7 +12,7 @@ import (
 func (image *Images) GetImagesFromRelease() ([]byte, error) {
 	settings := cli.New()
 
-	image.log.Debug(fmt.Sprintf("fetching chart manifest for release '%s' from kube cluster", image.release))
+	image.log.Debugf("fetching chart manifest for release '%s' from kube cluster", image.release)
 
 	actionConfig := new(action.Configuration)
 
@@ -30,7 +29,7 @@ func (image *Images) GetImagesFromRelease() ([]byte, error) {
 		return nil, err
 	}
 
-	image.log.Debug(fmt.Sprintf("chart manifest for release '%s' was successfully retrieved from kube cluster", image.release))
+	image.log.Debugf("chart manifest for release '%s' was successfully retrieved from kube cluster", image.release)
 
 	return []byte(release.Manifest), nil
 }

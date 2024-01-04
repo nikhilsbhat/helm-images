@@ -77,9 +77,7 @@ func (image *Images) GetWriter() *bufio.Writer {
 //
 //nolint:funlen,gocognit
 func (image *Images) GetImages() error {
-	image.log.Debug(
-		fmt.Sprintf("got all required values to fetch the images from chart/release '%s' proceeding furter to fetch the same", image.release),
-	)
+	image.log.Debugf("got all required values to fetch the images from chart/release '%s' proceeding furter to fetch the same", image.release)
 
 	chart, err := image.getChartManifests()
 	if err != nil {
@@ -96,13 +94,13 @@ func (image *Images) GetImages() error {
 		}
 
 		if !funk.Contains(image.Kind, currentKind) {
-			image.log.Debug(fmt.Sprintf("either helm-images plugin does not support kind '%s' "+
-				"at the moment or manifest might not have images to filter", currentKind))
+			image.log.Debugf("either helm-images plugin does not support kind '%s' "+
+				"at the moment or manifest might not have images to filter", currentKind)
 
 			continue
 		}
 
-		image.log.Debug(fmt.Sprintf("fetching images from kind '%s'", currentKind))
+		image.log.Debugf("fetching images from kind '%s'", currentKind)
 
 		switch currentKind {
 		case k8s.KindDeployment:
@@ -195,7 +193,7 @@ func (image *Images) GetImages() error {
 			grafanaErr := &imgErrors.GrafanaAPIVersionSupportError{}
 			if err != nil {
 				if errors.As(err, &grafanaErr) {
-					image.log.Debugf("fetching images from Kind Grafana errored with %s", err.Error())
+					image.log.Errorf("fetching images from Kind Grafana errored with %s", err.Error())
 
 					continue
 				}
@@ -205,7 +203,7 @@ func (image *Images) GetImages() error {
 
 			images = append(images, grafana)
 		default:
-			image.log.Debug(fmt.Sprintf("kind '%s' is not supported at the moment", currentKind))
+			image.log.Debugf("kind '%s' is not supported at the moment", currentKind)
 		}
 	}
 
@@ -214,12 +212,12 @@ func (image *Images) GetImages() error {
 
 func (image *Images) getChartManifests() ([]byte, error) {
 	if image.FromRelease {
-		image.log.Debug(fmt.Sprintf("from-release is selected, hence fetching manifests for '%s' from helm release", image.release))
+		image.log.Debugf("from-release is selected, hence fetching manifests for '%s' from helm release", image.release)
 
 		return image.GetImagesFromRelease()
 	}
 
-	image.log.Debug(fmt.Sprintf("fetching manifests for '%s' by rendering helm template locally", image.release))
+	image.log.Debugf("fetching manifests for '%s' by rendering helm template locally", image.release)
 
 	return image.getChartTemplate()
 }
@@ -258,7 +256,7 @@ func (image *Images) getChartTemplate() ([]byte, error) {
 	args := []string{"template", image.release, image.chart}
 	args = append(args, flags...)
 
-	image.log.Debug(fmt.Sprintf("rendering helm chart with following commands/flags '%s'", strings.Join(args, ", ")))
+	image.log.Debugf("rendering helm chart with following commands/flags '%s'", strings.Join(args, ", "))
 
 	cmd := exec.Command(os.Getenv("HELM_BIN"), args...) //nolint:gosec
 	output, err := cmd.Output()
@@ -283,7 +281,7 @@ func (image *Images) getChartTemplate() ([]byte, error) {
 }
 
 func (image *Images) GetTemplates(template []byte) []string {
-	image.log.Debug(fmt.Sprintf("splitting helm manifests with regex pattern: '%s'", image.ImageRegex))
+	image.log.Debugf("splitting helm manifests with regex pattern: '%s'", image.ImageRegex)
 	temp := regexp.MustCompile(image.ImageRegex)
 	kinds := temp.Split(string(template), -1)
 	// Removing empty string at the beginning as splitting string always adds it in front.

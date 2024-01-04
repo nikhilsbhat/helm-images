@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
@@ -35,8 +34,8 @@ func (image *Images) FilterImagesByRegistries(images []*k8s.Image) []*k8s.Image 
 			imagesToFilter = imagesFiltered
 		}
 
-		image.log.Debug(fmt.Sprintf("filtering images by the selected registries '%s' since '-r,--registry' is enabled",
-			strings.Join(image.Registries, ", ")))
+		image.log.Debugf("filtering images by the selected registries '%s' since '-r,--registry' is enabled",
+			strings.Join(image.Registries, ", "))
 
 		for _, img := range imagesToFilter {
 			uniqueImages := FilteredImages(img.Image, image.Registries)
