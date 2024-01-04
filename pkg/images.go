@@ -35,6 +35,8 @@ type Images struct {
 	ImageRegex   string
 	ValueFiles   ValueFiles
 	LogLevel     string
+	SkipTests    bool
+	SkipCRDS     bool
 	FromRelease  bool
 	UniqueImages bool
 	JSON         bool
@@ -243,6 +245,14 @@ func (image *Images) getChartTemplate() ([]byte, error) {
 
 	if strings.ToLower(image.LogLevel) == logrus.DebugLevel.String() {
 		flags = append(flags, "--debug")
+	}
+
+	if image.SkipTests {
+		flags = append(flags, "--skip-tests")
+	}
+
+	if image.SkipCRDS {
+		flags = append(flags, "--skip-crds")
 	}
 
 	args := []string{"template", image.release, image.chart}

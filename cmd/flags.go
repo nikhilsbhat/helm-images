@@ -16,6 +16,10 @@ func registerFlags(cmd *cobra.Command) {
 		"set values from respective files specified via the command line (can specify multiple or separate values with commas: key1=path1,key2=path2)") //nolint:lll
 	cmd.PersistentFlags().VarP(&images.ValueFiles, "values", "f",
 		"specify values in a YAML file (can specify multiple)")
+	cmd.PersistentFlags().BoolVarP(&images.SkipTests, "skip-tests", "", false,
+		"setting this would set '--skip-tests' for helm template command while generating templates")
+	cmd.PersistentFlags().BoolVarP(&images.SkipCRDS, "skip-crds", "", false,
+		"setting this would set '--skip-crds' for helm template command while generating templates")
 }
 
 // Registers all flags to command, get.
