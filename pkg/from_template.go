@@ -49,6 +49,7 @@ func (image *Images) getChartFromTemplate() ([]byte, error) {
 	image.log.Debugf("rendering helm chart with following commands/flags '%s'", strings.Join(args, ", "))
 
 	cmd := exec.Command(os.Getenv("HELM_BIN"), args...) //nolint:gosec
+	image.log.Debugf("running below command to render the helm template \n%s\n", cmd.String())
 	output, err := cmd.Output()
 
 	var exitErr *exec.ExitError

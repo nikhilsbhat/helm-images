@@ -4,13 +4,18 @@ flags:
   - set-file
   - set-string
   - values
+  - skip-crds
+  - skip-tests
 commands:
   - name: get
     flags:
-      - kind
+      - from-release
       - image-regex
+      - json
+      - kind
+      - log-level
       - registry
+      - table
       - unique
       - yaml
-      - json
   - name: version
