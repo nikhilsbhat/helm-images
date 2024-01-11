@@ -42,4 +42,6 @@ func registerGetFlags(cmd *cobra.Command) {
 		"enable the flag to display images retrieved in table format (disabled by default)")
 	cmd.PersistentFlags().BoolVarP(&images.FromRelease, "from-release", "", false,
 		"enable the flag to fetch the images from release instead (disabled by default)")
+	cmd.PersistentFlags().BoolVarP(&images.NoColor, "no-color", "", false,
+		"when enabled does not color encode the output")
 }

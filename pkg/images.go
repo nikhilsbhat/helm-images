@@ -21,48 +21,54 @@ const (
 
 // Images represents GetImages.
 type Images struct {
-	// Registries are list of registry names which we have filter out from
-	Registries   []string
-	Kind         []string
-	Values       []string
-	StringValues []string
-	FileValues   []string
-	ImageRegex   string
-	ValueFiles   ValueFiles
-	LogLevel     string
-	SkipTests    bool
-	SkipCRDS     bool
-	FromRelease  bool
-	UniqueImages bool
-	JSON         bool
-	YAML         bool
-	Table        bool
+	Registries   []string   `json:"registries,omitempty"    yaml:"registries,omitempty"`
+	Kind         []string   `json:"kind,omitempty"          yaml:"kind,omitempty"`
+	Values       []string   `json:"values,omitempty"        yaml:"values,omitempty"`
+	StringValues []string   `json:"string_values,omitempty" yaml:"string_values,omitempty"`
+	FileValues   []string   `json:"file_values,omitempty"   yaml:"file_values,omitempty"`
+	ImageRegex   string     `json:"image_regex,omitempty"   yaml:"image_regex,omitempty"`
+	ValueFiles   ValueFiles `json:"value_files,omitempty"   yaml:"value_files,omitempty"`
+	LogLevel     string     `json:"log_level,omitempty"     yaml:"log_level,omitempty"`
+	SkipTests    bool       `json:"skip_tests,omitempty"    yaml:"skip_tests,omitempty"`
+	SkipCRDS     bool       `json:"skip_crds,omitempty"     yaml:"skip_crds,omitempty"`
+	FromRelease  bool       `json:"from_release,omitempty"  yaml:"from_release,omitempty"`
+	UniqueImages bool       `json:"unique_images,omitempty" yaml:"unique_images,omitempty"`
+	JSON         bool       `json:"json,omitempty"          yaml:"json,omitempty"`
+	YAML         bool       `json:"yaml,omitempty"          yaml:"yaml,omitempty"`
+	Table        bool       `json:"table,omitempty"         yaml:"table,omitempty"`
+	NoColor      bool       `json:"no_color,omitempty"      yaml:"no_color,omitempty"`
 	release      string
 	chart        string
 	log          *logrus.Logger
 	writer       *bufio.Writer
 }
 
+// SetRelease sets release passed.
 func (image *Images) SetRelease(release string) {
 	image.release = release
 }
 
+// SetChart sets chart passed.
 func (image *Images) SetChart(chart string) {
 	image.chart = chart
 }
 
+// SetWriter sets writer to Images.
 func (image *Images) SetWriter(writer io.Writer) {
 	image.writer = bufio.NewWriter(writer)
 }
 
+// GetRelease returns the release set under Images.
 func (image *Images) GetRelease() string {
 	return image.release
 }
 
+// GetChart returns the chart set under Images.
 func (image *Images) GetChart() string {
 	return image.chart
 }
 
+// GetWriter returns the writer set under Images.
 func (image *Images) GetWriter() *bufio.Writer {
 	return image.writer
 }
@@ -202,6 +208,19 @@ func (image *Images) GetImages() error {
 		}
 	}
 
+	if len(images) == 0 {
+		switch image.FromRelease {
+		case true:
+			image.log.Infof("the release '%s' does not have any images", image.release)
+
+			return nil
+		default:
+			image.log.Infof("the chart '%s' does not have any images", image.chart)
+
+			return nil
+		}
+	}
+
 	return image.render(images)
 }
 
@@ -217,6 +236,7 @@ func (image *Images) getChartManifests() ([]byte, error) {
 	return image.getChartFromTemplate()
 }
 
+// GetTemplates returns the split manifests fetched from one big template string fetched from `helm template`.
 func (image *Images) GetTemplates(template []byte) []string {
 	image.log.Debugf("splitting helm manifests with regex pattern: '%s'", image.ImageRegex)
 	temp := regexp.MustCompile(image.ImageRegex)

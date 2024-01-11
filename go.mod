@@ -4,9 +4,9 @@ go 1.21
 
 require (
 	github.com/banzaicloud/thanos-operator/pkg/sdk v0.3.7
-	github.com/cheynewallace/tabby v1.1.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/grafana-operator/grafana-operator v1.4.1-0.20230402103704-6c9d72512d5a
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.65.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0

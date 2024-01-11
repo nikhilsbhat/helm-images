@@ -60,7 +60,7 @@ func getImagesCommand() *cobra.Command {
   helm images get prometheus-standalone --from-release --registry quay.io
   helm images get prometheus-standalone --from-release --registry quay.io --unique
   helm images get prometheus-standalone --from-release --registry quay.io --yaml`,
-		Args: minimumArgError,
+		Args: validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			images.SetLogger(images.LogLevel)
 			images.SetWriter(os.Stdout)
@@ -135,16 +135,14 @@ func versionConfig(_ *cobra.Command, _ []string) error {
 }
 
 //nolint:goerr113
-func minimumArgError(cmd *cobra.Command, args []string) error {
+func validateArgs(cmd *cobra.Command, args []string) error {
 	minArgError := errors.New("[RELEASE] or [CHART] cannot be empty")
-	oneOfThemError := errors.New("when '--from-release' is enabled, valid input is [RELEASE] and not both [RELEASE] [CHART]")
+	oneOfThemError := errors.New("when '--from-release' is enabled, only [RELEASE] can be set and not both [RELEASE] [CHART]")
 	cmd.SilenceUsage = true
 
 	if !images.FromRelease {
 		if len(args) != getArgumentCountLocal {
-			log.Println(minArgError)
-
-			return minArgError
+			log.Fatalln(minArgError)
 		}
 
 		return nil

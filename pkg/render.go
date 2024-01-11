@@ -4,15 +4,16 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
-	"github.com/cheynewallace/tabby"
 	"github.com/ghodss/yaml"
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
+	"github.com/olekukonko/tablewriter"
 )
 
-func (image *Images) render(images []*k8s.Image) error {
-	imagesFiltered := image.FilterImagesByRegistries(images)
+func (image *Images) render(k8sImages []*k8s.Image) error {
+	imagesFiltered := image.FilterImagesByRegistries(k8sImages)
 
 	if image.JSON {
 		return image.ToJSON(imagesFiltered)
@@ -30,13 +31,13 @@ func (image *Images) render(images []*k8s.Image) error {
 
 	image.log.Debug("no format was specified for rendering images, defaulting to list")
 
-	imags := GetImagesFromKind(imagesFiltered)
+	images := GetImagesFromKind(imagesFiltered)
 
 	if image.UniqueImages {
-		imags = GetUniqEntries(imags)
+		images = GetUniqEntries(images)
 	}
 
-	if _, err := image.writer.Write([]byte(fmt.Sprintf("%s\n", strings.Join(imags, "\n")))); err != nil {
+	if _, err := image.writer.Write([]byte(fmt.Sprintf("%s\n", strings.Join(images, "\n")))); err != nil {
 		image.log.Fatalln(err)
 	}
 
@@ -53,14 +54,24 @@ func (image *Images) render(images []*k8s.Image) error {
 func (image *Images) toTABLE(imagesFiltered []*k8s.Image) {
 	image.log.Debug("rendering the images in table format since --table is enabled")
 
-	table := tabby.New()
-	table.AddHeader("Name", "Kind", "Image")
+	table := tablewriter.NewWriter(os.Stdout)
 
-	for _, img := range imagesFiltered {
-		table.AddLine(img.Name, img.Kind, strings.Join(img.Image, ", "))
+	table.SetHeader([]string{"Name", "Kind", "Image"})
+
+	if !image.NoColor {
+		table.SetHeaderColor(tablewriter.Colors{tablewriter.Bold}, tablewriter.Colors{tablewriter.Bold}, tablewriter.Colors{tablewriter.Bold})
 	}
 
-	table.Print()
+	table.SetAlignment(tablewriter.ALIGN_CENTER) //nolint:nosnakecase
+	table.SetAutoWrapText(true)
+	table.SetAutoMergeCells(true)
+	table.SetRowLine(true)
+
+	for _, img := range imagesFiltered {
+		table.Append([]string{img.Name, img.Kind, strings.Join(img.Image, ", ")})
+	}
+
+	table.Render()
 }
 
 func (image *Images) ToYAML(imagesFiltered []*k8s.Image) error {
