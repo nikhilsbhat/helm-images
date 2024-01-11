@@ -26,6 +26,8 @@ type Images struct {
 	Values       []string   `json:"values,omitempty"        yaml:"values,omitempty"`
 	StringValues []string   `json:"string_values,omitempty" yaml:"string_values,omitempty"`
 	FileValues   []string   `json:"file_values,omitempty"   yaml:"file_values,omitempty"`
+	ShowOnly     []string   `json:"show_only,omitempty"     yaml:"show_only,omitempty"`
+	Version      string     `json:"version,omitempty"       yaml:"version,omitempty"`
 	ImageRegex   string     `json:"image_regex,omitempty"   yaml:"image_regex,omitempty"`
 	ValueFiles   ValueFiles `json:"value_files,omitempty"   yaml:"value_files,omitempty"`
 	LogLevel     string     `json:"log_level,omitempty"     yaml:"log_level,omitempty"`
@@ -37,6 +39,7 @@ type Images struct {
 	YAML         bool       `json:"yaml,omitempty"          yaml:"yaml,omitempty"`
 	Table        bool       `json:"table,omitempty"         yaml:"table,omitempty"`
 	NoColor      bool       `json:"no_color,omitempty"      yaml:"no_color,omitempty"`
+	Validate     bool       `json:"validate,omitempty"      yaml:"validate,omitempty"`
 	release      string
 	chart        string
 	log          *logrus.Logger

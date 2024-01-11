@@ -8,18 +8,26 @@ import (
 
 // Registers all global flags to utility itself.
 func registerFlags(cmd *cobra.Command) {
-	cmd.PersistentFlags().StringArrayVar(&images.Values, "set", []string{},
+	cmd.PersistentFlags().StringArrayVarP(&images.Values, "set", "", nil,
 		"set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
-	cmd.PersistentFlags().StringArrayVar(&images.StringValues, "set-string", []string{},
+	cmd.PersistentFlags().StringArrayVarP(&images.StringValues, "set-string", "", nil,
 		"set STRING values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	cmd.PersistentFlags().StringArrayVar(&images.FileValues, "set-file", []string{},
-		"set values from respective files specified via the command line (can specify multiple or separate values with commas: key1=path1,key2=path2)") //nolint:lll
+		"set values from respective files specified via the command line "+
+			"(can specify multiple or separate values with commas: key1=path1,key2=path2)")
+	cmd.PersistentFlags().StringArrayVarP(&images.ShowOnly, "show-only", "s", nil,
+		"only show manifests rendered from the given templates")
 	cmd.PersistentFlags().VarP(&images.ValueFiles, "values", "f",
 		"specify values in a YAML file (can specify multiple)")
+	cmd.PersistentFlags().StringVarP(&images.Version, "version", "", "",
+		"specify a version constraint for the chart version to use., the value passed here would be used to set "+
+			"--version for helm template command while generating templates")
 	cmd.PersistentFlags().BoolVarP(&images.SkipTests, "skip-tests", "", false,
 		"setting this would set '--skip-tests' for helm template command while generating templates")
 	cmd.PersistentFlags().BoolVarP(&images.SkipCRDS, "skip-crds", "", false,
 		"setting this would set '--skip-crds' for helm template command while generating templates")
+	cmd.PersistentFlags().BoolVarP(&images.Validate, "validate", "", false,
+		"setting this would set '--validate' for helm template command while generating templates")
 }
 
 // Registers all flags to command, get.

@@ -23,6 +23,10 @@ func (image *Images) getChartFromTemplate() ([]byte, error) {
 		flags = append(flags, "--set-string", stringValue)
 	}
 
+	for _, showOnly := range image.ShowOnly {
+		flags = append(flags, "--show-only", showOnly)
+	}
+
 	for _, fileValue := range image.FileValues {
 		flags = append(flags, "--set-file", fileValue)
 	}
@@ -41,6 +45,14 @@ func (image *Images) getChartFromTemplate() ([]byte, error) {
 
 	if image.SkipCRDS {
 		flags = append(flags, "--skip-crds")
+	}
+
+	if image.Validate {
+		flags = append(flags, "--validate")
+	}
+
+	if len(image.Version) != 0 {
+		flags = append(flags, "--version", image.Version)
 	}
 
 	args := []string{"template", image.release, image.chart}
