@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SetLogger sets logger to the Images.
 func (image *Images) SetLogger(logLevel string) {
 	logger := log.New()
 	logger.SetLevel(GetLoglevel(logLevel))

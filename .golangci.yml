@@ -16,6 +16,7 @@ linters:
     - maligned
     - depguard
     - dupword
+    - tagalign
 
 issues:
   exclude-rules:

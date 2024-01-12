@@ -47,18 +47,21 @@ type (
 	ThanosReceiver thanosAlphaV1.Receiver
 )
 
+// KindInterface implements method that identifies the type of kubernetes workloads.
 type KindInterface interface {
 	Get(dataMap string) (string, error)
 }
 
+// ImagesInterface implements method that gets images from various kubernetes workloads.
 type ImagesInterface interface {
 	Get(dataMap string) (*Image, error)
 }
 
+// Image holds information of images retrieved.
 type Image struct {
-	Kind  string   `json:"kind,omitempty"`
-	Name  string   `json:"name,omitempty"`
-	Image []string `json:"image,omitempty"`
+	Kind  string   `json:"kind,omitempty" yaml:"kind,omitempty"`
+	Name  string   `json:"name,omitempty" yaml:"name,omitempty"`
+	Image []string `json:"image,omitempty" yaml:"image,omitempty"`
 }
 
 func (kin *Kind) Get(dataMap string) (string, error) {
@@ -80,6 +83,7 @@ func (kin *Kind) Get(dataMap string) (string, error) {
 	return "", nil
 }
 
+// Get identifies images from Deployments.
 func (dep *Deployments) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -96,6 +100,7 @@ func (dep *Deployments) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from StatefulSets.
 func (dep *StatefulSets) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -112,6 +117,7 @@ func (dep *StatefulSets) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from DaemonSets.
 func (dep *DaemonSets) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -128,6 +134,7 @@ func (dep *DaemonSets) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from CronJob.
 func (dep *CronJob) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -145,6 +152,7 @@ func (dep *CronJob) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from Job.
 func (dep *Job) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -161,6 +169,7 @@ func (dep *Job) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from ReplicaSets.
 func (dep *ReplicaSets) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -177,6 +186,7 @@ func (dep *ReplicaSets) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from Pod.
 func (dep *Pod) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -193,6 +203,7 @@ func (dep *Pod) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from AlertManager.
 func (dep *AlertManager) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -207,6 +218,7 @@ func (dep *AlertManager) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from Prometheus.
 func (dep *Prometheus) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -228,6 +240,7 @@ func (dep *Prometheus) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from ThanosRuler.
 func (dep *ThanosRuler) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -249,6 +262,7 @@ func (dep *ThanosRuler) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from Grafana.
 func (dep *Grafana) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -272,6 +286,7 @@ func (dep *Grafana) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from Thanos.
 func (dep *Thanos) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -298,6 +313,7 @@ func (dep *Thanos) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// Get identifies images from ThanosReceiver.
 func (dep *ThanosReceiver) Get(dataMap string) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
@@ -322,58 +338,72 @@ func (dep *ThanosReceiver) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+// NewDeployment returns new instance of Deployments.
 func NewDeployment() ImagesInterface {
 	return &Deployments{}
 }
 
+// NewStatefulSet returns new instance of StatefulSets.
 func NewStatefulSet() ImagesInterface {
 	return &StatefulSets{}
 }
 
+// NewDaemonSet returns new instance of DaemonSets.
 func NewDaemonSet() ImagesInterface {
 	return &DaemonSets{}
 }
 
+// NewReplicaSets returns new instance of ReplicaSets.
 func NewReplicaSets() ImagesInterface {
 	return &ReplicaSets{}
 }
 
+// NewCronjob returns new instance of Cronjob.
 func NewCronjob() ImagesInterface {
 	return &CronJob{}
 }
 
+// NewJob returns new instance of Job.
 func NewJob() ImagesInterface {
 	return &Job{}
 }
 
+// NewPod returns new instance of Pod.
 func NewPod() ImagesInterface {
 	return &Pod{}
 }
 
+// NewAlertManager returns new instance of AlertManager.
 func NewAlertManager() ImagesInterface {
 	return &AlertManager{}
 }
 
+// NewPrometheus returns new instance of Prometheus.
 func NewPrometheus() ImagesInterface {
 	return &Prometheus{}
 }
 
+// NewThanosRuler returns new instance of ThanosRuler.
 func NewThanosRuler() ImagesInterface {
 	return &ThanosRuler{}
 }
 
+// NewGrafana returns new instance of Grafana.
 func NewGrafana() ImagesInterface {
 	return &Grafana{}
 }
 
+// NewThanos returns new instance of Thanos.
 func NewThanos() ImagesInterface {
 	return &Thanos{}
 }
 
+// NewThanosReceiver returns new instance of ThanosReceiver.
 func NewThanosReceiver() ImagesInterface {
 	return &ThanosReceiver{}
 }
 
+// NewKind returns new instance of Kind.
 func NewKind() KindInterface {
 	return &Kind{}
 }

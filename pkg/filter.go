@@ -6,6 +6,7 @@ import (
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
 )
 
+// FilterImagesByRegistries filters images those are part of registries list passed.
 func (image *Images) FilterImagesByRegistries(images []*k8s.Image) []*k8s.Image {
 	if !image.UniqueImages && (len(image.Registries) == 0) {
 		return images
