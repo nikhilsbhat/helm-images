@@ -1,7 +1,6 @@
 package pkg_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/nikhilsbhat/helm-images/pkg"
@@ -132,14 +131,5 @@ func TestImages_SetChart(t *testing.T) {
 		imageClient.SetChart("testChart")
 
 		assert.Equal(t, imageClient.GetChart(), "testChart")
-	})
-}
-
-func TestImages_SetWriter(t *testing.T) {
-	t.Run("Should be able to set the writer", func(t *testing.T) {
-		imageClient := pkg.Images{}
-		imageClient.SetWriter(os.Stdout)
-
-		assert.NotNil(t, imageClient.GetWriter())
 	})
 }

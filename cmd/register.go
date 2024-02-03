@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/nikhilsbhat/common/renderer"
 	"github.com/nikhilsbhat/helm-images/pkg"
 	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	"github.com/nikhilsbhat/helm-images/version"
@@ -93,8 +94,10 @@ func setCLIClient(_ *cobra.Command, _ []string) error {
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	cliLogger = logger
 
+	cliRenderer := renderer.GetRenderer(os.Stdout, cliLogger, images.NoColor, images.YAML, images.JSON, false, images.Table)
+
 	images.SetLogger(images.LogLevel)
-	images.SetWriter(os.Stdout)
+	images.SetRenderer(cliRenderer)
 
 	return nil
 }

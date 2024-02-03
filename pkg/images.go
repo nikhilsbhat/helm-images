@@ -1,11 +1,10 @@
 package pkg
 
 import (
-	"bufio"
 	"errors"
-	"io"
 	"regexp"
 
+	"github.com/nikhilsbhat/common/renderer"
 	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
 	monitoringV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -43,7 +42,7 @@ type Images struct {
 	release      string
 	chart        string
 	log          *logrus.Logger
-	writer       *bufio.Writer
+	renderer     renderer.Config
 }
 
 // SetRelease sets release passed.
@@ -56,9 +55,9 @@ func (image *Images) SetChart(chart string) {
 	image.chart = chart
 }
 
-// SetWriter sets writer to Images.
-func (image *Images) SetWriter(writer io.Writer) {
-	image.writer = bufio.NewWriter(writer)
+// SetRenderer sets renderer to Images.
+func (image *Images) SetRenderer(render renderer.Config) {
+	image.renderer = render
 }
 
 // GetRelease returns the release set under Images.
@@ -69,11 +68,6 @@ func (image *Images) GetRelease() string {
 // GetChart returns the chart set under Images.
 func (image *Images) GetChart() string {
 	return image.chart
-}
-
-// GetWriter returns the writer set under Images.
-func (image *Images) GetWriter() *bufio.Writer {
-	return image.writer
 }
 
 // GetImages fetches all available images from the specified chart.
@@ -224,7 +218,9 @@ func (image *Images) GetImages() error {
 		}
 	}
 
-	return image.render(images)
+	output := image.setOutput(images)
+
+	return image.renderer.Render(output)
 }
 
 func (image *Images) getChartManifests() ([]byte, error) {
