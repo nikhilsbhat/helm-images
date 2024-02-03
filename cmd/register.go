@@ -5,17 +5,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/nikhilsbhat/helm-images/pkg"
 	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	"github.com/nikhilsbhat/helm-images/version"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-var images = pkg.Images{}
+var (
+	images    = pkg.Images{}
+	cliLogger *logrus.Logger
+)
 
 const (
 	getArgumentCountLocal   = 2
@@ -59,17 +62,13 @@ func getImagesCommand() *cobra.Command {
 		Example: `  helm images get prometheus-standalone path/to/chart/prometheus-standalone -f ~/path/to/override-config.yaml
   helm images get prometheus-standalone --from-release --registry quay.io
   helm images get prometheus-standalone --from-release --registry quay.io --unique
-  helm images get prometheus-standalone --from-release --registry quay.io --yaml`,
-		Args: validateArgs,
+  helm images get prometheus-standalone --from-release --registry quay.io --yaml
+  helm images get oci://registry-1.docker.io/bitnamicharts/airflow --yaml
+  helm images get kong-2.35.0.tgz --yaml`,
+		Args:    validateAndSetArgs,
+		PreRunE: setCLIClient,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			images.SetLogger(images.LogLevel)
-			images.SetWriter(os.Stdout)
 			cmd.SilenceUsage = true
-
-			images.SetRelease(args[0])
-			if !images.FromRelease {
-				images.SetChart(args[1])
-			}
 
 			if (images.JSON && images.YAML && images.Table) || (images.JSON && images.YAML) ||
 				(images.Table && images.YAML) || (images.Table && images.JSON) {
@@ -81,9 +80,23 @@ func getImagesCommand() *cobra.Command {
 			return images.GetImages()
 		},
 	}
+
 	registerGetFlags(imageCommand)
 
 	return imageCommand
+}
+
+func setCLIClient(_ *cobra.Command, _ []string) error {
+	logger := logrus.New()
+	logger.SetLevel(pkg.GetLoglevel(images.LogLevel))
+	logger.WithField("helm-images", true)
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	cliLogger = logger
+
+	images.SetLogger(images.LogLevel)
+	images.SetWriter(os.Stdout)
+
+	return nil
 }
 
 func getRootCommand() *cobra.Command {
@@ -113,21 +126,20 @@ func getVersionCommand() *cobra.Command {
 func versionConfig(_ *cobra.Command, _ []string) error {
 	buildInfo, err := json.Marshal(version.GetBuildInfo())
 	if err != nil {
-		log.Fatalf("fetching version of helm-images failed with: %v", err)
+		cliLogger.Fatalf("fetching version of helm-images failed with: %v", err)
 	}
 
 	writer := bufio.NewWriter(os.Stdout)
 	versionInfo := fmt.Sprintf("%s \n", strings.Join([]string{"images version", string(buildInfo)}, ": "))
 
-	_, err = writer.WriteString(versionInfo)
-	if err != nil {
-		log.Fatalln(err)
+	if _, err = writer.WriteString(versionInfo); err != nil {
+		cliLogger.Fatalln(err)
 	}
 
 	defer func(writer *bufio.Writer) {
 		err = writer.Flush()
 		if err != nil {
-			log.Fatalln(err)
+			cliLogger.Fatalln(err)
 		}
 	}(writer)
 
@@ -135,22 +147,40 @@ func versionConfig(_ *cobra.Command, _ []string) error {
 }
 
 //nolint:goerr113
-func validateArgs(cmd *cobra.Command, args []string) error {
+func validateAndSetArgs(cmd *cobra.Command, args []string) error {
+	logger := logrus.New()
+	logger.SetLevel(pkg.GetLoglevel(images.LogLevel))
+	logger.WithField("helm-images", true)
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	cliLogger = logger
+
 	minArgError := errors.New("[RELEASE] or [CHART] cannot be empty")
 	oneOfThemError := errors.New("when '--from-release' is enabled, only [RELEASE] can be set and not both [RELEASE] [CHART]")
+	defaultReleaseName := "sample"
 	cmd.SilenceUsage = true
 
 	if !images.FromRelease {
-		if len(args) != getArgumentCountLocal {
-			log.Fatalln(minArgError)
+		switch len(args) {
+		case getArgumentCountRelease:
+			cliLogger.Debugf("looks like no release name specified, hence it would be set to '%s' by default", defaultReleaseName)
+
+			images.SetRelease(defaultReleaseName)
+			images.SetChart(args[0])
+		case getArgumentCountLocal:
+			images.SetRelease(args[0])
+			images.SetChart(args[1])
+		default:
+			cliLogger.Fatal(minArgError)
 		}
 
 		return nil
 	}
 
 	if len(args) > getArgumentCountRelease {
-		log.Fatalln(oneOfThemError)
+		cliLogger.Fatal(oneOfThemError)
 	}
+
+	images.SetRelease(args[0])
 
 	return nil
 }
