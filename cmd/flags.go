@@ -20,7 +20,7 @@ func registerFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().VarP(&images.ValueFiles, "values", "f",
 		"specify values in a YAML file (can specify multiple)")
 	cmd.PersistentFlags().StringVarP(&images.Version, "version", "", "",
-		"specify a version constraint for the chart version to use., the value passed here would be used to set "+
+		"specify a version constraint for the chart version to use, the value passed here would be used to set "+
 			"--version for helm template command while generating templates")
 	cmd.PersistentFlags().BoolVarP(&images.SkipTests, "skip-tests", "", false,
 		"setting this would set '--skip-tests' for helm template command while generating templates")

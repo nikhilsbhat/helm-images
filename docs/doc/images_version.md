@@ -27,7 +27,7 @@ images version [flags]
       --skip-tests               setting this would set '--skip-tests' for helm template command while generating templates
       --validate                 setting this would set '--validate' for helm template command while generating templates
   -f, --values ValueFiles        specify values in a YAML file (can specify multiple) (default [])
-      --version string           specify a version constraint for the chart version to use., the value passed here would be used to set --version for helm template command while generating templates
+      --version string           specify a version constraint for the chart version to use, the value passed here would be used to set --version for helm template command while generating templates
 ```
 
 ### SEE ALSO

@@ -3,19 +3,28 @@ flags:
   - set
   - set-file
   - set-string
-  - values
+  - -s
+  - show-only
   - skip-crds
   - skip-tests
+  - validate
+  - f
+  - values
+  - version
 commands:
   - name: get
     flags:
       - from-release
       - image-regex
-      - json
+      - k
       - kind
+      - l
       - log-level
+      - no-color
+      - r
       - registry
-      - table
+      - o
+      - output
+      - u
       - unique
-      - yaml
   - name: version

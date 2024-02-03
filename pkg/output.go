@@ -46,6 +46,8 @@ func (image *Images) SetOutputFormats() {
 	case "csv":
 		image.csv = true
 	default:
-		image.log.Warnf("helm images does not support format '%s', switching to default", image.OutputFormat)
+		if len(image.OutputFormat) != 0 {
+			image.log.Warnf("helm images does not support format '%s', switching to default", image.OutputFormat)
+		}
 	}
 }
