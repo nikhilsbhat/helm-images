@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"errors"
+	"os"
 	"regexp"
 
 	"github.com/nikhilsbhat/common/renderer"
@@ -30,15 +31,17 @@ type Images struct {
 	ImageRegex   string     `json:"image_regex,omitempty"   yaml:"image_regex,omitempty"`
 	ValueFiles   ValueFiles `json:"value_files,omitempty"   yaml:"value_files,omitempty"`
 	LogLevel     string     `json:"log_level,omitempty"     yaml:"log_level,omitempty"`
+	OutputFormat string     `json:"output_format,omitempty" yaml:"output_format,omitempty"`
 	SkipTests    bool       `json:"skip_tests,omitempty"    yaml:"skip_tests,omitempty"`
 	SkipCRDS     bool       `json:"skip_crds,omitempty"     yaml:"skip_crds,omitempty"`
 	FromRelease  bool       `json:"from_release,omitempty"  yaml:"from_release,omitempty"`
 	UniqueImages bool       `json:"unique_images,omitempty" yaml:"unique_images,omitempty"`
-	JSON         bool       `json:"json,omitempty"          yaml:"json,omitempty"`
-	YAML         bool       `json:"yaml,omitempty"          yaml:"yaml,omitempty"`
-	Table        bool       `json:"table,omitempty"         yaml:"table,omitempty"`
 	NoColor      bool       `json:"no_color,omitempty"      yaml:"no_color,omitempty"`
 	Validate     bool       `json:"validate,omitempty"      yaml:"validate,omitempty"`
+	json         bool
+	yaml         bool
+	table        bool
+	csv          bool
 	release      string
 	chart        string
 	log          *logrus.Logger
@@ -56,7 +59,8 @@ func (image *Images) SetChart(chart string) {
 }
 
 // SetRenderer sets renderer to Images.
-func (image *Images) SetRenderer(render renderer.Config) {
+func (image *Images) SetRenderer() {
+	render := renderer.GetRenderer(os.Stdout, image.log, image.NoColor, image.yaml, image.json, image.csv, image.table)
 	image.renderer = render
 }
 

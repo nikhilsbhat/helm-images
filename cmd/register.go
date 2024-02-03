@@ -8,9 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nikhilsbhat/common/renderer"
 	"github.com/nikhilsbhat/helm-images/pkg"
-	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	"github.com/nikhilsbhat/helm-images/version"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -61,22 +59,15 @@ func getImagesCommand() *cobra.Command {
 		Short: "Fetches all images those are part of specified chart/release",
 		Long:  "Lists all images those are part of specified chart/release and matches the pattern or part of specified registry.",
 		Example: `  helm images get prometheus-standalone path/to/chart/prometheus-standalone -f ~/path/to/override-config.yaml
-  helm images get prometheus-standalone --from-release --registry quay.io
+  helm images get prometheus-standalone --from-release --registry quay.io -o table
   helm images get prometheus-standalone --from-release --registry quay.io --unique
-  helm images get prometheus-standalone --from-release --registry quay.io --yaml
-  helm images get oci://registry-1.docker.io/bitnamicharts/airflow --yaml
-  helm images get kong-2.35.0.tgz --yaml`,
+  helm images get prometheus-standalone --from-release --registry quay.io -o yaml
+  helm images get oci://registry-1.docker.io/bitnamicharts/airflow -o yaml
+  helm images get kong-2.35.0.tgz -o json`,
 		Args:    validateAndSetArgs,
 		PreRunE: setCLIClient,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
-
-			if (images.JSON && images.YAML && images.Table) || (images.JSON && images.YAML) ||
-				(images.Table && images.YAML) || (images.Table && images.JSON) {
-				return &imgErrors.MultipleFormatError{
-					Message: "cannot render the output to multiple format, enable any of '--yaml --json --table' at a time",
-				}
-			}
 
 			return images.GetImages()
 		},
@@ -94,10 +85,10 @@ func setCLIClient(_ *cobra.Command, _ []string) error {
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	cliLogger = logger
 
-	cliRenderer := renderer.GetRenderer(os.Stdout, cliLogger, images.NoColor, images.YAML, images.JSON, false, images.Table)
-
 	images.SetLogger(images.LogLevel)
-	images.SetRenderer(cliRenderer)
+	images.SetOutputFormats()
+
+	images.SetRenderer()
 
 	return nil
 }

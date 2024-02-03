@@ -12,7 +12,7 @@ func (image *Images) setOutput(images []*k8s.Image) interface{} {
 	var output interface{}
 	output = images
 
-	if image.Table {
+	if image.table {
 		outputTable := make([][]string, 0)
 
 		outputTable = append(outputTable, []string{"Name", "Kind", "Image"})
@@ -23,7 +23,7 @@ func (image *Images) setOutput(images []*k8s.Image) interface{} {
 		output = outputTable
 	}
 
-	if !image.JSON && !image.YAML && !image.Table {
+	if !image.json && !image.yaml && !image.table && !image.csv {
 		imagesNames := GetImagesFromKind(images)
 		if image.UniqueImages {
 			imagesNames = GetUniqEntries(imagesNames)
@@ -33,4 +33,19 @@ func (image *Images) setOutput(images []*k8s.Image) interface{} {
 	}
 
 	return output
+}
+
+func (image *Images) SetOutputFormats() {
+	switch strings.ToLower(image.OutputFormat) {
+	case "yaml":
+		image.yaml = true
+	case "json":
+		image.json = true
+	case "table":
+		image.table = true
+	case "csv":
+		image.csv = true
+	default:
+		image.log.Warnf("helm images does not support format '%s', switching to default", image.OutputFormat)
+	}
 }
