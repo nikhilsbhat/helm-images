@@ -46,7 +46,7 @@ archives:
       - install-binary.sh
 
 snapshot:
-  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Runtime.Goos }}_{{ .Runtime.Goarch }}"
 
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
