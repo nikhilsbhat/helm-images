@@ -34,7 +34,7 @@ local.check: local.fmt ## Loads all the dependencies to vendor directory
 	@go mod tidy
 
 local.build: local.check ## Generates the artifact with the help of 'go build'
-	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} goreleaser build --rm-dist
+	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} goreleaser build --clean
 
 local.push: local.build ## Pushes built artifact to the specified location
 
@@ -42,10 +42,10 @@ local.run: local.build ## Generates the artifact and start the service in the cu
 	./${APP_NAME}
 
 publish: local.check ## Builds and publishes the app
-	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --rm-dist
+	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --clean
 
 mock.publish: local.check ## Builds and mocks app release
-	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --skip-publish --rm-dist
+	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --skip-publish --clean
 
 lint: ## Lint's application for errors, it is a linters aggregator (https://github.com/golangci/golangci-lint).
 	if [ -z "${DEV}" ]; then golangci-lint run --color always ; else docker run --rm -v $(APP_DIR):/app -w /app golangci/golangci-lint:v1.46.2-alpine golangci-lint run --color always ; fi
