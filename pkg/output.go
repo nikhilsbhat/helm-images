@@ -37,13 +37,13 @@ func (image *Images) setOutput(images []*k8s.Image) interface{} {
 
 func (image *Images) SetOutputFormats() {
 	switch strings.ToLower(image.OutputFormat) {
-	case "yaml":
+	case "yaml", "y":
 		image.yaml = true
-	case "json":
+	case "json", "j":
 		image.json = true
-	case "table":
+	case "table", "t":
 		image.table = true
-	case "csv":
+	case "csv", "c":
 		image.csv = true
 	default:
 		if len(image.OutputFormat) != 0 {
