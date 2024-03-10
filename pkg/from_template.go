@@ -8,10 +8,9 @@ import (
 	"os/exec"
 	"strings"
 
+	imageErr "github.com/nikhilsbhat/helm-images/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
-
-var errHelmBinNotSet = errors.New("environment variable HELM_BIN is not set")
 
 // getChartFromTemplate should get the manifests by rendering the helm template.
 func (image *Images) getChartFromTemplate() ([]byte, error) {
@@ -64,11 +63,11 @@ func (image *Images) getChartFromTemplate() ([]byte, error) {
 
 	helmBin := os.Getenv("HELM_BIN")
 	if helmBin == "" {
-		return nil, errHelmBinNotSet
+		return nil, &imageErr.ImageError{Message: "environment variable 'HELM_BIN' is not set"}
 	}
 
-	cmd := exec.Command(helmBin, args...) //nolint:gosec
-	image.log.Debugf("running below command to render the helm template \n%s\n", cmd.String())
+	cmd := exec.Command(helmBin, args...)
+	image.log.Debugf("running following command to render the helm template: %s", cmd.String())
 	output, err := cmd.Output()
 
 	var exitErr *exec.ExitError

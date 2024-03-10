@@ -9,6 +9,7 @@ import (
 	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
 	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	monitoringV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/thoas/go-funk"
 	appsV1 "k8s.io/api/apps/v1"
 	batchV1 "k8s.io/api/batch/v1"
 	coreV1 "k8s.io/api/core/v1"
@@ -27,6 +28,8 @@ const (
 	KindThanosReceiver = "Receiver"
 	kubeKind           = "kind"
 )
+
+var imagesFlags = []string{"--prometheus-config-reloader", "--thanos-default-base-image"}
 
 type (
 	Deployments  appsV1.Deployment
@@ -433,7 +436,7 @@ func (cont containers) getImagesFromArgs() []string {
 		for _, arg := range container.Args {
 			keyValue := strings.Split(arg, "=")
 			if len(keyValue) == 2 { //nolint: gomnd
-				if keyValue[0] == "--prometheus-config-reloader" || keyValue[0] == "--thanos-default-base-image" {
+				if funk.Contains(imagesFlags, keyValue[0]) {
 					images = append(images, keyValue[1])
 				}
 			}
