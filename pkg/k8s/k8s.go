@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"fmt"
+	"strings"
 
 	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
 	"github.com/ghodss/yaml"
@@ -95,6 +96,10 @@ func (dep *Deployments) Get(dataMap string) (*Image, error) {
 		Kind:  KindDeployment,
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
+	}
+
+	if dep.ObjectMeta.Labels["app.kubernetes.io/part-of"] == "kube-prometheus-stack" {
+		images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
 	}
 
 	return images, nil
@@ -417,6 +422,25 @@ func SupportedKinds() []string {
 	}
 
 	return kinds
+}
+
+// kube-prometheus-stack/prometheus-operator supplies config-reloader and thanos
+// images through container args.
+func (cont containers) getImagesFromArgs() []string {
+	images := make([]string, 0)
+
+	for _, container := range cont.containers {
+		for _, arg := range container.Args {
+			keyValue := strings.Split(arg, "=")
+			if len(keyValue) == 2 { //nolint: gomnd
+				if keyValue[0] == "--prometheus-config-reloader" || keyValue[0] == "--thanos-default-base-image" {
+					images = append(images, keyValue[1])
+				}
+			}
+		}
+	}
+
+	return images
 }
 
 func (cont containers) getImages() []string {

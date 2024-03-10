@@ -11,6 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var errHelmBinNotSet = errors.New("environment variable HELM_BIN is not set")
+
 // getChartFromTemplate should get the manifests by rendering the helm template.
 func (image *Images) getChartFromTemplate() ([]byte, error) {
 	flags := make([]string, 0)
@@ -60,7 +62,12 @@ func (image *Images) getChartFromTemplate() ([]byte, error) {
 
 	image.log.Debugf("rendering helm chart with following commands/flags '%s'", strings.Join(args, ", "))
 
-	cmd := exec.Command(os.Getenv("HELM_BIN"), args...) //nolint:gosec
+	helmBin := os.Getenv("HELM_BIN")
+	if helmBin == "" {
+		return nil, errHelmBinNotSet
+	}
+
+	cmd := exec.Command(helmBin, args...) //nolint:gosec
 	image.log.Debugf("running below command to render the helm template \n%s\n", cmd.String())
 	output, err := cmd.Output()
 
