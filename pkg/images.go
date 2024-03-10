@@ -140,6 +140,13 @@ func (image *Images) GetImages() error {
 			}
 
 			images = append(images, pods)
+		case k8s.KindConfigMap:
+			configMap, err := k8s.NewConfigMap().Get(kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+
+			images = append(images, configMap)
 		case k8s.KindCronJob:
 			cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate)
 			if err != nil {

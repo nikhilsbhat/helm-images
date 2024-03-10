@@ -26,6 +26,7 @@ const (
 	KindGrafana        = "Grafana"
 	KindThanos         = "Thanos"
 	KindThanosReceiver = "Receiver"
+	KindConfigMap      = "ConfigMap"
 	kubeKind           = "kind"
 )
 
@@ -53,6 +54,7 @@ type (
 	Grafana        grafanaBetaV1.Grafana
 	Thanos         thanosAlphaV1.Thanos
 	ThanosReceiver thanosAlphaV1.Receiver
+	ConfigMap      coreV1.ConfigMap
 )
 
 // KindInterface implements method that identifies the type of kubernetes workloads.
@@ -360,6 +362,26 @@ func (dep *ThanosReceiver) Get(dataMap string) (*Image, error) {
 	return images, nil
 }
 
+func (dep *ConfigMap) Get(dataMap string) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+
+	images := &Image{
+		Kind:  KindConfigMap,
+		Name:  dep.Name,
+		Image: make([]string, 0),
+	}
+
+	for key, value := range dep.Data {
+		if strings.Contains(strings.ToLower(key), "image") {
+			images.Image = append(images.Image, value)
+		}
+	}
+
+	return images, nil
+}
+
 // NewDeployment returns new instance of Deployments.
 func NewDeployment() ImagesInterface {
 	return &Deployments{}
@@ -425,6 +447,10 @@ func NewThanosReceiver() ImagesInterface {
 	return &ThanosReceiver{}
 }
 
+func NewConfigMap() ImagesInterface {
+	return &ConfigMap{}
+}
+
 // NewKind returns new instance of Kind.
 func NewKind() KindInterface {
 	return &Kind{}
@@ -435,7 +461,7 @@ func SupportedKinds() []string {
 		KindDeployment, KindStatefulSet, KindDaemonSet,
 		KindCronJob, KindJob, KindReplicaSet, KindPod,
 		monitoringV1.AlertmanagersKind, monitoringV1.PrometheusesKind, monitoringV1.ThanosRulerKind,
-		KindGrafana, KindThanos, KindThanosReceiver,
+		KindGrafana, KindThanos, KindThanosReceiver, KindConfigMap,
 	}
 
 	return kinds
