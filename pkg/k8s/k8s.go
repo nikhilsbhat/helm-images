@@ -29,7 +29,11 @@ const (
 	kubeKind           = "kind"
 )
 
-var imagesFlags = []string{"--prometheus-config-reloader", "--thanos-default-base-image"}
+var imagesFlags = []string{
+	"--prometheus-config-reloader",
+	"--thanos-default-base-image",
+	"--acme-http01-solver-image",
+}
 
 type (
 	Deployments  appsV1.Deployment
@@ -101,9 +105,7 @@ func (dep *Deployments) Get(dataMap string) (*Image, error) {
 		Image: depContainers.getImages(),
 	}
 
-	if dep.ObjectMeta.Labels["app.kubernetes.io/part-of"] == "kube-prometheus-stack" {
-		images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
-	}
+	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
 
 	return images, nil
 }
@@ -122,6 +124,8 @@ func (dep *StatefulSets) Get(dataMap string) (*Image, error) {
 		Image: depContainers.getImages(),
 	}
 
+	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+
 	return images, nil
 }
 
@@ -138,6 +142,8 @@ func (dep *DaemonSets) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
+	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
 
 	return images, nil
 }
@@ -157,6 +163,8 @@ func (dep *CronJob) Get(dataMap string) (*Image, error) {
 		Image: depContainers.getImages(),
 	}
 
+	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+
 	return images, nil
 }
 
@@ -173,6 +181,8 @@ func (dep *Job) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
+	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
 
 	return images, nil
 }
@@ -191,6 +201,8 @@ func (dep *ReplicaSets) Get(dataMap string) (*Image, error) {
 		Image: depContainers.getImages(),
 	}
 
+	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+
 	return images, nil
 }
 
@@ -207,6 +219,8 @@ func (dep *Pod) Get(dataMap string) (*Image, error) {
 		Name:  dep.Name,
 		Image: depContainers.getImages(),
 	}
+
+	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
 
 	return images, nil
 }
