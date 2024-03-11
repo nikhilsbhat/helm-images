@@ -1,14 +1,17 @@
 package k8s
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
 	"github.com/ghodss/yaml"
 	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
+	"github.com/nikhilsbhat/common/content"
 	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	monitoringV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 	appsV1 "k8s.io/api/apps/v1"
 	batchV1 "k8s.io/api/batch/v1"
@@ -373,10 +376,49 @@ func (dep *ConfigMap) Get(dataMap string) (*Image, error) {
 		Image: make([]string, 0),
 	}
 
+	fileTypeLogger := logrus.New()
+	fileTypeLogger.SetLevel(logrus.InfoLevel)
+
 	for key, value := range dep.Data {
-		if strings.Contains(strings.ToLower(key), "image") {
-			images.Image = append(images.Image, value)
+		valueMap := make(map[string]interface{})
+		object := content.Object(value)
+
+		switch objType := object.CheckFileType(fileTypeLogger); objType {
+		case content.FileTypeYAML:
+			if err := yaml.Unmarshal([]byte(object.String()), &valueMap); err != nil {
+				return nil, err
+			}
+
+			valuesFound, found := GetImage(valueMap, key)
+			if !found {
+				continue
+			}
+
+			images.Image = append(images.Image, valuesFound...)
+		case content.FileTypeJSON:
+			if err := json.Unmarshal([]byte(object.String()), &valueMap); err != nil {
+				return nil, err
+			}
+
+			valuesFound, found := GetImage(valueMap, key)
+			if !found {
+				continue
+			}
+
+			images.Image = append(images.Image, valuesFound...)
+		case content.FileTypeString:
+			if strings.Contains(strings.ToLower(key), "image") {
+				images.Image = append(images.Image, value)
+			}
+		default:
+			if strings.Contains(strings.ToLower(key), "image") {
+				images.Image = append(images.Image, value)
+			}
 		}
+	}
+
+	if len(images.Image) == 0 {
+		return &Image{}, nil
 	}
 
 	return images, nil
@@ -493,4 +535,24 @@ func (cont containers) getImages() []string {
 	}
 
 	return images
+}
+
+//nolint:nonamedreturns
+func GetImage(data map[string]any, key string) (values []string, valuesFound bool) {
+	for dataKey, dataValue := range data {
+		if strings.Contains(strings.ToLower(dataKey), "image") {
+			values = append(values, dataValue.(string))
+			valuesFound = true
+		}
+		//nolint:gocritic
+		switch dataValueType := dataValue.(type) {
+		case map[string]any:
+			if result, found := GetImage(dataValueType, key); found {
+				values = append(values, result...)
+				valuesFound = found
+			}
+		}
+	}
+
+	return values, valuesFound
 }

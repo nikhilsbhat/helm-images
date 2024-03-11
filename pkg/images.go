@@ -3,6 +3,7 @@ package pkg
 import (
 	"errors"
 	"os"
+	"reflect"
 	"regexp"
 
 	"github.com/nikhilsbhat/common/renderer"
@@ -146,7 +147,9 @@ func (image *Images) GetImages() error {
 				return err
 			}
 
-			images = append(images, configMap)
+			if !reflect.DeepEqual(configMap, &k8s.Image{}) {
+				images = append(images, configMap)
+			}
 		case k8s.KindCronJob:
 			cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate)
 			if err != nil {
