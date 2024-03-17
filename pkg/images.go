@@ -91,6 +91,11 @@ func (image *Images) GetImages() error {
 	kubeKindTemplates := image.GetTemplates(chart)
 
 	for _, kubeKindTemplate := range kubeKindTemplates {
+		manifestName, err := k8s.NewName().Get(kubeKindTemplate)
+		if err != nil {
+			return err
+		}
+
 		currentKind, err := k8s.NewKind().Get(kubeKindTemplate)
 		if err != nil {
 			return err
@@ -103,7 +108,7 @@ func (image *Images) GetImages() error {
 			continue
 		}
 
-		image.log.Debugf("fetching images from kind '%s'", currentKind)
+		image.log.Debugf("fetching images from '%s' of kind '%s'", currentKind, manifestName)
 
 		switch currentKind {
 		case k8s.KindDeployment:

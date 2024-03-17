@@ -48,6 +48,7 @@ type (
 	Job          batchV1.Job
 	Pod          coreV1.Pod
 	Kind         map[string]interface{}
+	Name         map[string]interface{}
 	containers   struct {
 		containers []coreV1.Container
 	}
@@ -75,6 +76,24 @@ type Image struct {
 	Kind  string   `json:"kind,omitempty" yaml:"kind,omitempty"`
 	Name  string   `json:"name,omitempty" yaml:"name,omitempty"`
 	Image []string `json:"image,omitempty" yaml:"image,omitempty"`
+}
+
+func (name *Name) Get(dataMap string) (string, error) {
+	var kindYaml map[string]interface{}
+	if err := yaml.Unmarshal([]byte(dataMap), &kindYaml); err != nil {
+		return "", err
+	}
+
+	if len(kindYaml) != 0 {
+		value, failedManifest := kindYaml["metadata"].(map[string]interface{})["name"].(string)
+		if !failedManifest {
+			return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'name' is not type string"}
+		}
+
+		return value, nil
+	}
+
+	return "", nil
 }
 
 func (kin *Kind) Get(dataMap string) (string, error) {
@@ -380,16 +399,17 @@ func (dep *ConfigMap) Get(dataMap string) (*Image, error) {
 	fileTypeLogger.SetLevel(logrus.InfoLevel)
 
 	for key, value := range dep.Data {
-		valueMap := make(map[string]interface{})
+		var valueMap interface{}
+
 		object := content.Object(value)
 
 		switch objType := object.CheckFileType(fileTypeLogger); objType {
 		case content.FileTypeYAML:
 			if err := yaml.Unmarshal([]byte(object.String()), &valueMap); err != nil {
-				return nil, err
+				return nil, &imgErrors.ImageError{Message: fmt.Sprintf("deserializing yaml data of configmap errored with '%s'", err.Error())}
 			}
 
-			valuesFound, found := GetImage(valueMap, key)
+			valuesFound, found := GetImage(GetData(valueMap), key)
 			if !found {
 				continue
 			}
@@ -397,10 +417,10 @@ func (dep *ConfigMap) Get(dataMap string) (*Image, error) {
 			images.Image = append(images.Image, valuesFound...)
 		case content.FileTypeJSON:
 			if err := json.Unmarshal([]byte(object.String()), &valueMap); err != nil {
-				return nil, err
+				return nil, &imgErrors.ImageError{Message: fmt.Sprintf("deserializing json data of configmap errored with '%s'", err.Error())}
 			}
 
-			valuesFound, found := GetImage(valueMap, key)
+			valuesFound, found := GetImage(GetData(valueMap), key)
 			if !found {
 				continue
 			}
@@ -498,6 +518,11 @@ func NewKind() KindInterface {
 	return &Kind{}
 }
 
+// NewName returns new instance of Name.
+func NewName() KindInterface {
+	return &Name{}
+}
+
 func SupportedKinds() []string {
 	kinds := []string{
 		KindDeployment, KindStatefulSet, KindDaemonSet,
@@ -541,18 +566,69 @@ func (cont containers) getImages() []string {
 func GetImage(data map[string]any, key string) (values []string, valuesFound bool) {
 	for dataKey, dataValue := range data {
 		if strings.Contains(strings.ToLower(dataKey), "image") {
-			values = append(values, dataValue.(string))
-			valuesFound = true
+			switch dataValueType := dataValue.(type) {
+			case string:
+				if len(dataValueType) != 0 {
+					values = append(values, dataValueType)
+					valuesFound = true
+				}
+			default:
+				continue
+			}
 		}
 		//nolint:gocritic
 		switch dataValueType := dataValue.(type) {
+		case []interface{}:
+			for _, v := range dataValueType {
+				switch nestedValueType := v.(type) {
+				case string:
+					continue
+				case map[string]interface{}:
+					if result, found := GetImage(nestedValueType, key); found {
+						values = append(values, result...)
+						valuesFound = found
+					}
+				default:
+					continue
+				}
+			}
 		case map[string]any:
 			if result, found := GetImage(dataValueType, key); found {
 				values = append(values, result...)
 				valuesFound = found
 			}
+		default:
+			continue
 		}
 	}
 
 	return values, valuesFound
+}
+
+func GetData(value interface{}) map[string]any {
+	switch dataValueType := value.(type) {
+	case []map[string]interface{}:
+		return dataValueType[0]
+	case map[string]interface{}:
+		return dataValueType
+	case []interface{}:
+		valueMap := make(map[string]interface{})
+
+		for _, v := range dataValueType {
+			switch nestedValueType := v.(type) {
+			case string:
+				continue
+			case map[string]interface{}:
+				for nestedKey, nestedValue := range nestedValueType {
+					valueMap[nestedKey] = nestedValue
+				}
+			default:
+				continue
+			}
+		}
+
+		return valueMap
+	default:
+		return map[string]any{}
+	}
 }

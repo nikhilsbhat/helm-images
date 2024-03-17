@@ -115,6 +115,6 @@ Updated documentation on all available commands and flags can be found [here](ht
 If the plugin is not listing the expected images, then most likely the `helm images plugin` does not support fetching images from the `workload` that it is part of.</br>
 Invoking the plugin with log-level set to `debug` should give information if the plugin is not supporting the workload.
 
-The plugin only supports the resources that are defined under flag [--kind](https://github.com/nikhilsbhat/helm-images/blob/master/cmd/flags.go#L25).
+The plugin only supports the resources that are defined under flag [--kind](https://github.com/nikhilsbhat/helm-images/blob/master/cmd/flags.go#L37).
 
 Available resources can be found [here](https://github.com/nikhilsbhat/helm-images/blob/master/pkg/k8s/k8s.go#L23).
