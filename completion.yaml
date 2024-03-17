@@ -26,5 +26,6 @@ commands:
       - o
       - output
       - u
+      - skip
       - unique
   - name: version

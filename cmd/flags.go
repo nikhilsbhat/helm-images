@@ -34,6 +34,8 @@ func registerFlags(cmd *cobra.Command) {
 func registerGetFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringSliceVarP(&images.Registries, "registry", "r", nil,
 		"registry name (docker images belonging to this registry)")
+	cmd.PersistentFlags().StringSliceVarP(&images.Skip, "skip", "", nil,
+		"list of resources to skip from identifying images, ex: ConfigMap=sample-configmap | configmap=sample-configmap")
 	cmd.PersistentFlags().StringSliceVarP(&images.Kind, "kind", "k", k8s.SupportedKinds(),
 		"kubernetes app kind to fetch the images from")
 	cmd.PersistentFlags().StringVarP(&images.LogLevel, "log-level", "l", "info",
