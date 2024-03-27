@@ -212,42 +212,42 @@ func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Imag
 
 	switch currentKind {
 	case k8s.KindDeployment:
-		deployImages, err := k8s.NewDeployment().Get(kubeKindTemplate)
+		deployImages, err := k8s.NewDeployment().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, deployImages)
 	case k8s.KindStatefulSet:
-		stsImages, err := k8s.NewStatefulSet().Get(kubeKindTemplate)
+		stsImages, err := k8s.NewStatefulSet().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, stsImages)
 	case k8s.KindDaemonSet:
-		daemonImages, err := k8s.NewDaemonSet().Get(kubeKindTemplate)
+		daemonImages, err := k8s.NewDaemonSet().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, daemonImages)
 	case k8s.KindReplicaSet:
-		replicaSets, err := k8s.NewReplicaSets().Get(kubeKindTemplate)
+		replicaSets, err := k8s.NewReplicaSets().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, replicaSets)
 	case k8s.KindPod:
-		pods, err := k8s.NewPod().Get(kubeKindTemplate)
+		pods, err := k8s.NewPod().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, pods)
 	case k8s.KindConfigMap:
-		configMap, err := k8s.NewConfigMap().Get(kubeKindTemplate)
+		configMap, err := k8s.NewConfigMap().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
@@ -256,56 +256,56 @@ func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Imag
 			images = append(images, configMap)
 		}
 	case k8s.KindCronJob:
-		cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate)
+		cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, cronJob)
 	case k8s.KindJob:
-		job, err := k8s.NewJob().Get(kubeKindTemplate)
+		job, err := k8s.NewJob().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, job)
 	case monitoringV1.AlertmanagersKind:
-		alertManager, err := k8s.NewAlertManager().Get(kubeKindTemplate)
+		alertManager, err := k8s.NewAlertManager().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, alertManager)
 	case monitoringV1.PrometheusesKind:
-		prometheus, err := k8s.NewPrometheus().Get(kubeKindTemplate)
+		prometheus, err := k8s.NewPrometheus().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, prometheus)
 	case monitoringV1.ThanosRulerKind:
-		thanosRuler, err := k8s.NewThanosRuler().Get(kubeKindTemplate)
+		thanosRuler, err := k8s.NewThanosRuler().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, thanosRuler)
 	case k8s.KindThanos:
-		thanos, err := k8s.NewThanos().Get(kubeKindTemplate)
+		thanos, err := k8s.NewThanos().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, thanos)
 	case k8s.KindThanosReceiver:
-		thanosReceiver, err := k8s.NewThanosReceiver().Get(kubeKindTemplate)
+		thanosReceiver, err := k8s.NewThanosReceiver().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, thanosReceiver)
 	case k8s.KindGrafana:
-		grafana, err := k8s.NewGrafana().Get(kubeKindTemplate)
+		grafana, err := k8s.NewGrafana().Get(kubeKindTemplate, image.log)
 
 		grafanaErr := &imgErrors.GrafanaAPIVersionSupportError{}
 		if err != nil {
