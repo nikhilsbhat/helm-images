@@ -1,11 +1,11 @@
 # Helm Images
 
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/nikhilsbhat/helm-images)](https://goreportcard.com/report/github.com/nikhilsbhat/helm-images) 
-[![shields](https://img.shields.io/badge/license-MIT-blue)](https://github.com/nikhilsbhat/helm-images/blob/master/LICENSE) 
-[![shields](https://godoc.org/github.com/nikhilsbhat/helm-images?status.svg)](https://godoc.org/github.com/nikhilsbhat/helm-images)
-[![shields](https://img.shields.io/github/v/tag/nikhilsbhat/helm-images.svg)](https://github.com/nikhilsbhat/helm-images/tags)
-[![shields](https://img.shields.io/github/downloads/nikhilsbhat/helm-images/total.svg)](https://github.com/nikhilsbhat/helm-images/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/sboutet06/helm-images)](https://goreportcard.com/report/github.com/sboutet06/helm-images)
+[![shields](https://img.shields.io/badge/license-MIT-blue)](https://github.com/sboutet06/helm-images/blob/master/LICENSE)
+[![shields](https://godoc.org/github.com/sboutet06/helm-images?status.svg)](https://godoc.org/github.com/sboutet06/helm-images)
+[![shields](https://img.shields.io/github/v/tag/sboutet06/helm-images.svg)](https://github.com/sboutet06/helm-images/tags)
+[![shields](https://img.shields.io/github/downloads/sboutet06/helm-images/total.svg)](https://github.com/sboutet06/helm-images/releases)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/images)](https://artifacthub.io/packages/search?repo=images)
 
 
@@ -38,7 +38,7 @@ quay.io/prometheus/alertmanager:v0.21.0
 ## Installation
 
 ```shell
-helm plugin install https://github.com/nikhilsbhat/helm-images
+helm plugin install https://github.com/sboutet06/helm-images
 ```
 Use the executable just like any other go-cli application.
 
@@ -108,13 +108,13 @@ Global Flags:
 
 ## Documentation
 
-Updated documentation on all available commands and flags can be found [here](https://github.com/nikhilsbhat/helm-images/blob/master/docs/doc/images.md).
+Updated documentation on all available commands and flags can be found [here](https://github.com/sboutet06/helm-images/blob/master/docs/doc/images.md).
 
 ## Caveats
 
 If the plugin is not listing the expected images, then most likely the `helm images plugin` does not support fetching images from the `workload` that it is part of.</br>
 Invoking the plugin with log-level set to `debug` should give information if the plugin is not supporting the workload.
 
-The plugin only supports the resources that are defined under flag [--kind](https://github.com/nikhilsbhat/helm-images/blob/master/cmd/flags.go#L37).
+The plugin only supports the resources that are defined under flag [--kind](https://github.com/sboutet06/helm-images/blob/master/cmd/flags.go#L37).
 
-Available resources can be found [here](https://github.com/nikhilsbhat/helm-images/blob/master/pkg/k8s/k8s.go#L23).
+Available resources can be found [here](https://github.com/sboutet06/helm-images/blob/master/pkg/k8s/k8s.go#L23).

@@ -3,7 +3,7 @@ package pkg
 import (
 	"strings"
 
-	"github.com/nikhilsbhat/helm-images/pkg/k8s"
+	"github.com/sboutet06/helm-images/pkg/k8s"
 )
 
 // FilterImagesByRegistries filters images those are part of registries list passed.

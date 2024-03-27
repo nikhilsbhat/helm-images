@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/ghodss/yaml"
-	"github.com/nikhilsbhat/helm-images/pkg/k8s"
+	"github.com/sboutet06/helm-images/pkg/k8s"
 	"github.com/stretchr/testify/assert"
 )
 

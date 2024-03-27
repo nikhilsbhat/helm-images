@@ -8,8 +8,8 @@ import (
 	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
 	"github.com/ghodss/yaml"
 	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
-	"github.com/nikhilsbhat/common/content"
-	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
+	"github.com/sboutet06/common/content"
+	imgErrors "github.com/sboutet06/helm-images/pkg/errors"
 	monitoringV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
@@ -79,12 +79,20 @@ type Image struct {
 }
 
 func (name *Name) Get(dataMap string) (string, error) {
-	var kindYaml map[string]interface{}
+	var kindYaml map[string]interface{}	
+
 	if err := yaml.Unmarshal([]byte(dataMap), &kindYaml); err != nil {
 		return "", err
 	}
 
 	if len(kindYaml) != 0 {
+		metadata, metadataExists := kindYaml["metadata"].(map[string]interface{})
+		if !metadataExists {
+			var log = logrus.New()
+			log.Warn("failed to get 'metadata' from the manifest")
+			return "", nil
+		}
+
 		value, failedManifest := kindYaml["metadata"].(map[string]interface{})["name"].(string)
 		if !failedManifest {
 			return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'name' is not type string"}

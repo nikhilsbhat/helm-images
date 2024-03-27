@@ -10,7 +10,7 @@ DATE?=$(shell date)
 PlATFORM?=$(shell go env GOOS)
 ARCHITECTURE?=$(shell go env GOARCH)
 GOVERSION?=$(shell go version | awk '{printf $$3}')
-BUILD_WITH_FLAGS="-s -w -X 'github.com/nikhilsbhat/helm-images/version.Version=${VERSION}' -X 'github.com/nikhilsbhat/helm-images/version.Env=${BUILD_ENVIRONMENT}' -X 'github.com/nikhilsbhat/helm-images/version.BuildDate=${DATE}' -X 'github.com/nikhilsbhat/helm-images/version.Revision=${REVISION}' -X 'github.com/nikhilsbhat/helm-images/version.Platform=${PlATFORM}/${ARCHITECTURE}' -X 'github.com/nikhilsbhat/helm-images/version.GoVersion=${GOVERSION}'"
+BUILD_WITH_FLAGS="-s -w -X 'github.com/sboutet06/helm-images/version.Version=${VERSION}' -X 'github.com/sboutet06/helm-images/version.Env=${BUILD_ENVIRONMENT}' -X 'github.com/sboutet06/helm-images/version.BuildDate=${DATE}' -X 'github.com/sboutet06/helm-images/version.Revision=${REVISION}' -X 'github.com/sboutet06/helm-images/version.Platform=${PlATFORM}/${ARCHITECTURE}' -X 'github.com/sboutet06/helm-images/version.GoVersion=${GOVERSION}'"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -68,7 +68,7 @@ generate.mock: ## generates mocks for the selected source packages.
 	@go generate ${SRC_PACKAGES}
 
 generate.document: ## generates cli documents using 'github.com/spf13/cobra/doc'.
-	@go generate github.com/nikhilsbhat/helm-images/docs
+	@go generate github.com/sboutet06/helm-images/docs
 
 test: ## runs test cases
 	@go test ./... -mod=vendor -coverprofile cover.out && go tool cover -html=cover.out -o cover.html && open cover.html

@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/nikhilsbhat/helm-images/cmd"
+	"github.com/sboutet06/helm-images/cmd"
 	"github.com/spf13/cobra/doc"
 )
 
-//go:generate go run github.com/nikhilsbhat/helm-images/docs
+//go:generate go run github.com/sboutet06/helm-images/docs
 func main() {
 	commands := cmd.SetImagesCommands()
 

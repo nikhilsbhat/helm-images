@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nikhilsbhat/helm-images/pkg"
-	"github.com/nikhilsbhat/helm-images/version"
+	"github.com/sboutet06/helm-images/pkg"
+	"github.com/sboutet06/helm-images/version"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

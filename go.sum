@@ -729,10 +729,10 @@ github.com/ncw/swift v1.0.47/go.mod h1:23YIA4yWVnGwv2dQlN4bB7egfYX6YLn0Yo/S6zZO/
 github.com/neilotoole/jsoncolor v0.7.1 h1:/MoU7KPLcto+ykcy592Y8eX9WFQhoi3IBEbwrP89dgs=
 github.com/neilotoole/jsoncolor v0.7.1/go.mod h1:KZ9hUYN5xMrvyhqlFQ3QTmu11OcoqFgSnWAcYkN6abg=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
-github.com/nikhilsbhat/common v0.0.5-0.20240311153804-bae6b5bd313c h1:+9bTWH3W1fj7JESP+4L9jkfswN8P2rNSaa8nGpwWmpc=
-github.com/nikhilsbhat/common v0.0.5-0.20240311153804-bae6b5bd313c/go.mod h1:ldoLjRsIaskDbouPaQ0ujVKbW8su3mI1MPQIaD24twQ=
-github.com/nikhilsbhat/gocd-sdk-go v0.1.9 h1:QG16EwKhxocn0Imza6S+/lE8S0MOw54UDebfJotQx2s=
-github.com/nikhilsbhat/gocd-sdk-go v0.1.9/go.mod h1:FFVOLXPhn55evuuyfiRJ23R8I5Ks2n31/DXLBQmaNsw=
+github.com/sboutet06/common v0.0.5-0.20240311153804-bae6b5bd313c h1:+9bTWH3W1fj7JESP+4L9jkfswN8P2rNSaa8nGpwWmpc=
+github.com/sboutet06/common v0.0.5-0.20240311153804-bae6b5bd313c/go.mod h1:ldoLjRsIaskDbouPaQ0ujVKbW8su3mI1MPQIaD24twQ=
+github.com/sboutet06/gocd-sdk-go v0.1.9 h1:QG16EwKhxocn0Imza6S+/lE8S0MOw54UDebfJotQx2s=
+github.com/sboutet06/gocd-sdk-go v0.1.9/go.mod h1:FFVOLXPhn55evuuyfiRJ23R8I5Ks2n31/DXLBQmaNsw=
 github.com/nwidger/jsoncolor v0.3.2 h1:rVJJlwAWDJShnbTYOQ5RM7yTA20INyKXlJ/fg4JMhHQ=
 github.com/nwidger/jsoncolor v0.3.2/go.mod h1:Cs34umxLbJvgBMnVNVqhji9BhoT/N/KinHqZptQ7cf4=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=

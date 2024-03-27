@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nikhilsbhat/helm-images/cmd"
+	"github.com/sboutet06/helm-images/cmd"
 )
 
 func main() {

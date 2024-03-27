@@ -3,7 +3,7 @@ package pkg
 import (
 	"strings"
 
-	"github.com/nikhilsbhat/helm-images/pkg/k8s"
+	"github.com/sboutet06/helm-images/pkg/k8s"
 )
 
 func (image *Images) setOutput(images []*k8s.Image) interface{} {
