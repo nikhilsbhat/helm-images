@@ -63,7 +63,7 @@ type (
 
 // KindInterface implements method that identifies the type of kubernetes workloads.
 type KindInterface interface {
-	Get(dataMap string) (string, error)
+	Get(dataMap string, log *logrus.Logger) (string, error)
 }
 
 // ImagesInterface implements method that gets images from various kubernetes workloads.
@@ -78,14 +78,20 @@ type Image struct {
 	Image []string `json:"image,omitempty" yaml:"image,omitempty"`
 }
 
-func (name *Name) Get(dataMap string) (string, error) {
+func (name *Name) Get(dataMap string, log *logrus.Logger) (string, error) {
 	var kindYaml map[string]interface{}
 	if err := yaml.Unmarshal([]byte(dataMap), &kindYaml); err != nil {
 		return "", err
 	}
 
 	if len(kindYaml) != 0 {
-		value, failedManifest := kindYaml["metadata"].(map[string]interface{})["name"].(string)
+		metadata, metadataExists := kindYaml["metadata"].(map[string]interface{})
+		if !metadataExists {
+			log.Warn("failed to get 'metadata' from the manifest")
+			return "", nil
+		}
+
+		value, failedManifest := metadata["name"].(string)
 		if !failedManifest {
 			return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'name' is not type string"}
 		}
@@ -96,7 +102,7 @@ func (name *Name) Get(dataMap string) (string, error) {
 	return "", nil
 }
 
-func (kin *Kind) Get(dataMap string) (string, error) {
+func (kin *Kind) Get(dataMap string, log *logrus.Logger) (string, error) {
 	var kindYaml map[string]interface{}
 
 	if err := yaml.Unmarshal([]byte(dataMap), &kindYaml); err != nil {

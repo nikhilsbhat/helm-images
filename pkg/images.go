@@ -99,12 +99,12 @@ func (image *Images) GetImages() error {
 	skips := image.GetResourcesToSkip()
 
 	for _, kubeKindTemplate := range kubeKindTemplates {
-		currentManifestName, err := k8s.NewName().Get(kubeKindTemplate)
+		currentManifestName, err := k8s.NewName().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return err
 		}
 
-		currentKind, err := k8s.NewKind().Get(kubeKindTemplate)
+		currentKind, err := k8s.NewKind().Get(kubeKindTemplate, image.log)
 		if err != nil {
 			return err
 		}
