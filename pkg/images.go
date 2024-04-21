@@ -124,6 +124,8 @@ func (image *Images) GetImages() error {
 					image.log.Debugf("skipping '%s' bearing name '%s' since it is set to skip", currentKind, currentManifestName)
 
 					tobeSkipped = true
+
+					break
 				}
 			}
 

@@ -26,11 +26,11 @@ func (image *Images) FilterImagesByRegistries(images []*k8s.Image) []*k8s.Image 
 		}
 	}
 
-	var newImagesFiltered []*k8s.Image
-
-	imagesToFilter := images
-
 	if len(image.Registries) != 0 {
+		var newImagesFiltered []*k8s.Image
+
+		imagesToFilter := images
+
 		if image.UniqueImages {
 			imagesToFilter = imagesFiltered
 		}

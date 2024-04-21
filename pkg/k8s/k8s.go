@@ -79,50 +79,44 @@ type Image struct {
 }
 
 func (name *Name) Get(dataMap string, log *logrus.Logger) (string, error) {
-	var kindYaml map[string]interface{}
-	if err := yaml.Unmarshal([]byte(dataMap), &kindYaml); err != nil {
+	if err := yaml.Unmarshal([]byte(dataMap), name); err != nil {
 		return "", err
 	}
 
-	if len(kindYaml) != 0 {
-		metadata, metadataExists := kindYaml["metadata"].(map[string]interface{})
-		if !metadataExists {
-			log.Warn("failed to get 'metadata' from the manifest")
-			return "", nil
-		}
+	kindYaml := *name
 
-		value, failedManifest := metadata["name"].(string)
-		if !failedManifest {
-			return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'name' is not type string"}
-		}
+	metadata, metadataExists := kindYaml["metadata"].(map[string]interface{})
+	if !metadataExists {
+		log.Warn("failed to get 'metadata' from the manifest")
 
-		return value, nil
+		return "", nil
 	}
 
-	return "", nil
+	value, failedManifest := metadata["name"].(string)
+	if !failedManifest {
+		return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'name' is not type string"}
+	}
+
+	return value, nil
 }
 
-func (kin *Kind) Get(dataMap string, log *logrus.Logger) (string, error) {
-	var kindYaml map[string]interface{}
-
-	if err := yaml.Unmarshal([]byte(dataMap), &kindYaml); err != nil {
+func (kin *Kind) Get(dataMap string, _ *logrus.Logger) (string, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &kin); err != nil {
 		return "", err
 	}
 
-	if len(kindYaml) != 0 {
-		value, ok := kindYaml[kubeKind].(string)
-		if !ok {
-			return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'kind' is not type string"}
-		}
+	kindYaml := *kin
 
-		return value, nil
+	value, ok := kindYaml[kubeKind].(string)
+	if !ok {
+		return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'kind' is not type string"}
 	}
 
-	return "", nil
+	return value, nil
 }
 
 // Get identifies images from Deployments.
-func (dep *Deployments) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *Deployments) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -141,7 +135,7 @@ func (dep *Deployments) Get(dataMap string, log *logrus.Logger) (*Image, error) 
 }
 
 // Get identifies images from StatefulSets.
-func (dep *StatefulSets) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *StatefulSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -160,7 +154,7 @@ func (dep *StatefulSets) Get(dataMap string, log *logrus.Logger) (*Image, error)
 }
 
 // Get identifies images from DaemonSets.
-func (dep *DaemonSets) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *DaemonSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -179,7 +173,7 @@ func (dep *DaemonSets) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from CronJob.
-func (dep *CronJob) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *CronJob) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -199,7 +193,7 @@ func (dep *CronJob) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from Job.
-func (dep *Job) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *Job) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -218,7 +212,7 @@ func (dep *Job) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from ReplicaSets.
-func (dep *ReplicaSets) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *ReplicaSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -237,7 +231,7 @@ func (dep *ReplicaSets) Get(dataMap string, log *logrus.Logger) (*Image, error) 
 }
 
 // Get identifies images from Pod.
-func (dep *Pod) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *Pod) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -256,7 +250,7 @@ func (dep *Pod) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from AlertManager.
-func (dep *AlertManager) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *AlertManager) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -271,7 +265,7 @@ func (dep *AlertManager) Get(dataMap string, log *logrus.Logger) (*Image, error)
 }
 
 // Get identifies images from Prometheus.
-func (dep *Prometheus) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *Prometheus) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -293,7 +287,7 @@ func (dep *Prometheus) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from ThanosRuler.
-func (dep *ThanosRuler) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *ThanosRuler) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -315,7 +309,7 @@ func (dep *ThanosRuler) Get(dataMap string, log *logrus.Logger) (*Image, error) 
 }
 
 // Get identifies images from Grafana.
-func (dep *Grafana) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *Grafana) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -339,7 +333,7 @@ func (dep *Grafana) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from Thanos.
-func (dep *Thanos) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *Thanos) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -366,7 +360,7 @@ func (dep *Thanos) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from ThanosReceiver.
-func (dep *ThanosReceiver) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *ThanosReceiver) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -545,10 +539,8 @@ func (cont containers) getImagesFromArgs() []string {
 	for _, container := range cont.containers {
 		for _, arg := range container.Args {
 			keyValue := strings.Split(arg, "=")
-			if len(keyValue) == 2 { //nolint: gomnd
-				if funk.Contains(imagesFlags, keyValue[0]) {
-					images = append(images, keyValue[1])
-				}
+			if len(keyValue) == 2 && funk.Contains(imagesFlags, keyValue[0]) {
+				images = append(images, keyValue[1])
 			}
 		}
 	}

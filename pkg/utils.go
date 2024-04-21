@@ -44,14 +44,18 @@ func (v *ValueFiles) Set(value string) error {
 }
 
 func GetUniqEntries(slice []string) []string {
-	for slc := 0; slc < len(slice); slc++ {
-		if Contains(slice[slc+1:], slice[slc]) {
-			slice = append(slice[:slc], slice[slc+1:]...)
-			slc--
+	encountered := map[string]bool{}
+	result := make([]string, 0)
+
+	for _, val := range slice {
+		if !encountered[val] {
+			encountered[val] = true
+
+			result = append(result, val)
 		}
 	}
 
-	return slice
+	return result
 }
 
 func Contains(slice []string, image string) bool {
