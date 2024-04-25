@@ -66,7 +66,12 @@ Flags:
       --set stringArray          set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)
       --set-file stringArray     set values from respective files specified via the command line (can specify multiple or separate values with commas: key1=path1,key2=path2)
       --set-string stringArray   set STRING values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)
+  -s, --show-only stringArray    only show manifests rendered from the given templates
+      --skip-crds                setting this would set '--skip-crds' for helm template command while generating templates
+      --skip-tests               setting this would set '--skip-tests' for helm template command while generating templates
+      --validate                 setting this would set '--validate' for helm template command while generating templates
   -f, --values ValueFiles        specify values in a YAML file (can specify multiple) (default [])
+      --version string           specify a version constraint for the chart version to use, the value passed here would be used to set --version for helm template command while generating templates
 
 
 Use "images [command] --help" for more information about a command.
@@ -83,27 +88,35 @@ Usage:
 
 Examples:
   helm images get prometheus-standalone path/to/chart/prometheus-standalone -f ~/path/to/override-config.yaml
-  helm images get prometheus-standalone --from-release --registry quay.io
+  helm images get prometheus-standalone --from-release --registry quay.io -o table
   helm images get prometheus-standalone --from-release --registry quay.io --unique
-  helm images get prometheus-standalone --from-release --registry quay.io --yaml
+  helm images get prometheus-standalone --from-release --registry quay.io -o yaml
+  helm images get oci://registry-1.docker.io/bitnamicharts/airflow -o yaml
+  helm images get kong-2.35.0.tgz -o json
 
 Flags:
       --from-release         enable the flag to fetch the images from release instead (disabled by default)
   -h, --help                 help for get
       --image-regex string   regex used to split helm template rendered (default "---\\n# Source:\\s.*.")
-  -j, --json                 enable the flag to display images retrieved in json format (disabled by default)
-  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet,Pod,Alertmanager,Prometheus,ThanosRuler])
+  -k, --kind strings         kubernetes app kind to fetch the images from (default [Deployment,StatefulSet,DaemonSet,CronJob,Job,ReplicaSet,Pod,Alertmanager,Prometheus,ThanosRuler,Grafana,Thanos,Receiver,ConfigMap])
   -l, --log-level string     log level for the plugin helm images (defaults to info) (default "info")
+      --no-color             when enabled does not color encode the output
+  -o, --output string        the format to which the output should be rendered to, it should be one of yaml|json|table|csv, if nothing specified it sets to default
   -r, --registry strings     registry name (docker images belonging to this registry)
-  -t, --table                enable the flag to display images retrieved in table format (disabled by default)
+      --skip strings         list of resources to skip from identifying images, ex: ConfigMap=sample-configmap | configmap=sample-configmap
   -u, --unique               enable the flag if duplicates to be removed from the retrieved list (disabled by default also overrides --kind)
-  -y, --yaml                 enable the flag to display images retrieved in yaml format (disabled by default)
 
 Global Flags:
       --set stringArray          set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)
       --set-file stringArray     set values from respective files specified via the command line (can specify multiple or separate values with commas: key1=path1,key2=path2)
       --set-string stringArray   set STRING values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)
+  -s, --show-only stringArray    only show manifests rendered from the given templates
+      --skip-crds                setting this would set '--skip-crds' for helm template command while generating templates
+      --skip-tests               setting this would set '--skip-tests' for helm template command while generating templates
+      --validate                 setting this would set '--validate' for helm template command while generating templates
   -f, --values ValueFiles        specify values in a YAML file (can specify multiple) (default [])
+      --version string           specify a version constraint for the chart version to use, the value passed here would be used to set --version for helm template command while generating templates
+
 ```
 
 ## Documentation
