@@ -403,7 +403,8 @@ func (dep *ConfigMap) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 		switch objType := object.CheckFileType(log); objType {
 		case content.FileTypeYAML:
 			if err := yaml.Unmarshal([]byte(object.String()), &valueMap); err != nil {
-				return nil, &imgErrors.ImageError{Message: fmt.Sprintf("deserializing yaml data of configmap errored with '%s'", err.Error())}
+				log.Errorf("deserializing yaml data of configmap '%s' errored with '%s'", dep.Name, err.Error())
+				continue
 			}
 
 			valuesFound, found := GetImage(GetData(valueMap), key)
@@ -414,7 +415,8 @@ func (dep *ConfigMap) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 			images.Image = append(images.Image, valuesFound...)
 		case content.FileTypeJSON:
 			if err := json.Unmarshal([]byte(object.String()), &valueMap); err != nil {
-				return nil, &imgErrors.ImageError{Message: fmt.Sprintf("deserializing json data of configmap errored with '%s'", err.Error())}
+				log.Errorf("deserializing json data of configmap '%s' errored with '%s'", dep.Name, err.Error())
+				continue
 			}
 
 			valuesFound, found := GetImage(GetData(valueMap), key)
