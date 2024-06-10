@@ -35,6 +35,7 @@ type Images struct {
 	ValueFiles   ValueFiles `json:"value_files,omitempty"   yaml:"value_files,omitempty"`
 	LogLevel     string     `json:"log_level,omitempty"     yaml:"log_level,omitempty"`
 	OutputFormat string     `json:"output_format,omitempty" yaml:"output_format,omitempty"`
+	Revision     int        `json:"revision,omitempty"      yaml:"revision,omitempty"`
 	SkipTests    bool       `json:"skip_tests,omitempty"    yaml:"skip_tests,omitempty"`
 	SkipCRDS     bool       `json:"skip_crds,omitempty"     yaml:"skip_crds,omitempty"`
 	FromRelease  bool       `json:"from_release,omitempty"  yaml:"from_release,omitempty"`
@@ -84,8 +85,6 @@ func (image *Images) GetChart() string {
 
 // GetImages fetches all available images from the specified chart.
 // Also filters identified images, to get just unique ones.
-//
-//nolint:funlen,gocognit
 func (image *Images) GetImages() error {
 	image.log.Debugf("got all required values to fetch the images from chart/release '%s' proceeding furter to fetch the same", image.release)
 

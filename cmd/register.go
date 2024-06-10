@@ -153,6 +153,10 @@ func validateAndSetArgs(cmd *cobra.Command, args []string) error {
 	defaultReleaseName := "sample"
 	cmd.SilenceUsage = true
 
+	if images.Revision != 0 && !images.FromRelease {
+		cliLogger.Fatalf("the '--revision' flag can only be used when retrieving images from a release, i.e., when the '--from-release' flag is set")
+	}
+
 	if !images.FromRelease {
 		switch len(args) {
 		case getArgumentCountRelease:

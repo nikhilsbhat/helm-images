@@ -404,6 +404,7 @@ func (dep *ConfigMap) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 		case content.FileTypeYAML:
 			if err := yaml.Unmarshal([]byte(object.String()), &valueMap); err != nil {
 				log.Errorf("deserializing yaml data of configmap '%s' errored with '%s'", dep.Name, err.Error())
+
 				continue
 			}
 
@@ -416,6 +417,7 @@ func (dep *ConfigMap) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 		case content.FileTypeJSON:
 			if err := json.Unmarshal([]byte(object.String()), &valueMap); err != nil {
 				log.Errorf("deserializing json data of configmap '%s' errored with '%s'", dep.Name, err.Error())
+
 				continue
 			}
 
@@ -573,7 +575,7 @@ func GetImage(data map[string]any, key string) (values []string, valuesFound boo
 				continue
 			}
 		}
-		//nolint:gocritic
+
 		switch dataValueType := dataValue.(type) {
 		case []interface{}:
 			for _, v := range dataValueType {

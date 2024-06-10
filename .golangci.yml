@@ -41,7 +41,7 @@ linters-settings:
     max-complexity: 30
 
   lll:
-    line-length: 140
+    line-length: 165
 
   dupl:
     threshold: 450
@@ -55,7 +55,6 @@ run:
     - scripts/
     - vendor/
     - docs/
-
   skip-files:
     - Makefile
     - README.md

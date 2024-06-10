@@ -28,6 +28,8 @@ func registerFlags(cmd *cobra.Command) {
 		"setting this would set '--skip-crds' for helm template command while generating templates")
 	cmd.PersistentFlags().BoolVarP(&images.Validate, "validate", "", false,
 		"setting this would set '--validate' for helm template command while generating templates")
+	cmd.PersistentFlags().IntVarP(&images.Revision, "revision", "", 0,
+		"revision of your release from which the images to be fetched")
 }
 
 // Registers all flags to command, get.

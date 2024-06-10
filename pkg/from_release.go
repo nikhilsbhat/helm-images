@@ -24,6 +24,9 @@ func (image *Images) getChartFromRelease() ([]byte, error) {
 
 	client := action.NewGet(actionConfig)
 
+	image.log.Debugf("fetching manifests from revision '%d' of helm release '%s'", image.Revision, image.release)
+	client.Version = image.Revision
+
 	release, err := client.Run(image.release)
 	if err != nil {
 		return nil, err
