@@ -1,5 +1,6 @@
 name: images
 flags:
+  - revision
   - set
   - set-file
   - set-string
@@ -14,6 +15,7 @@ flags:
 commands:
   - name: get
     flags:
+      - configmap-image-regex
       - from-release
       - image-regex
       - k
@@ -21,11 +23,11 @@ commands:
       - l
       - log-level
       - no-color
-      - r
-      - registry
       - o
       - output
-      - u
+      - r
+      - registry
       - skip
+      - u
       - unique
   - name: version
