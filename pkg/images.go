@@ -19,37 +19,40 @@ const (
 	// ImageRegex is the default regex, that is used to split one big helm template to multiple templates.
 	// Splitting templates eases the task of  identifying Kubernetes objects.
 	ImageRegex = `---\n# Source:\s.*.`
+	// ConfigMapImageRegex is the default regex, that is used for identifying images from ConfigMap.
+	ConfigMapImageRegex = `\bimage\b`
 )
 
 // Images represents GetImages.
 type Images struct {
-	Registries   []string   `json:"registries,omitempty"    yaml:"registries,omitempty"`
-	Kind         []string   `json:"kind,omitempty"          yaml:"kind,omitempty"`
-	Values       []string   `json:"values,omitempty"        yaml:"values,omitempty"`
-	StringValues []string   `json:"string_values,omitempty" yaml:"string_values,omitempty"`
-	FileValues   []string   `json:"file_values,omitempty"   yaml:"file_values,omitempty"`
-	ShowOnly     []string   `json:"show_only,omitempty"     yaml:"show_only,omitempty"`
-	Skip         []string   `json:"skip,omitempty"          yaml:"skip,omitempty"`
-	Version      string     `json:"version,omitempty"       yaml:"version,omitempty"`
-	ImageRegex   string     `json:"image_regex,omitempty"   yaml:"image_regex,omitempty"`
-	ValueFiles   ValueFiles `json:"value_files,omitempty"   yaml:"value_files,omitempty"`
-	LogLevel     string     `json:"log_level,omitempty"     yaml:"log_level,omitempty"`
-	OutputFormat string     `json:"output_format,omitempty" yaml:"output_format,omitempty"`
-	Revision     int        `json:"revision,omitempty"      yaml:"revision,omitempty"`
-	SkipTests    bool       `json:"skip_tests,omitempty"    yaml:"skip_tests,omitempty"`
-	SkipCRDS     bool       `json:"skip_crds,omitempty"     yaml:"skip_crds,omitempty"`
-	FromRelease  bool       `json:"from_release,omitempty"  yaml:"from_release,omitempty"`
-	UniqueImages bool       `json:"unique_images,omitempty" yaml:"unique_images,omitempty"`
-	NoColor      bool       `json:"no_color,omitempty"      yaml:"no_color,omitempty"`
-	Validate     bool       `json:"validate,omitempty"      yaml:"validate,omitempty"`
-	json         bool
-	yaml         bool
-	table        bool
-	csv          bool
-	release      string
-	chart        string
-	log          *logrus.Logger
-	renderer     renderer.Config
+	Registries          []string   `json:"registries,omitempty"            yaml:"registries,omitempty"`
+	Kind                []string   `json:"kind,omitempty"                  yaml:"kind,omitempty"`
+	Values              []string   `json:"values,omitempty"                yaml:"values,omitempty"`
+	StringValues        []string   `json:"string_values,omitempty"         yaml:"string_values,omitempty"`
+	FileValues          []string   `json:"file_values,omitempty"           yaml:"file_values,omitempty"`
+	ShowOnly            []string   `json:"show_only,omitempty"             yaml:"show_only,omitempty"`
+	Skip                []string   `json:"skip,omitempty"                  yaml:"skip,omitempty"`
+	Version             string     `json:"version,omitempty"               yaml:"version,omitempty"`
+	ImageRegex          string     `json:"image_regex,omitempty"           yaml:"image_regex,omitempty"`
+	ConfigMapImageRegex string     `json:"configmap_image_regex,omitempty" yaml:"configmap_image_regex,omitempty"`
+	ValueFiles          ValueFiles `json:"value_files,omitempty"           yaml:"value_files,omitempty"`
+	LogLevel            string     `json:"log_level,omitempty"             yaml:"log_level,omitempty"`
+	OutputFormat        string     `json:"output_format,omitempty"         yaml:"output_format,omitempty"`
+	Revision            int        `json:"revision,omitempty"              yaml:"revision,omitempty"`
+	SkipTests           bool       `json:"skip_tests,omitempty"            yaml:"skip_tests,omitempty"`
+	SkipCRDS            bool       `json:"skip_crds,omitempty"             yaml:"skip_crds,omitempty"`
+	FromRelease         bool       `json:"from_release,omitempty"          yaml:"from_release,omitempty"`
+	UniqueImages        bool       `json:"unique_images,omitempty"         yaml:"unique_images,omitempty"`
+	NoColor             bool       `json:"no_color,omitempty"              yaml:"no_color,omitempty"`
+	Validate            bool       `json:"validate,omitempty"              yaml:"validate,omitempty"`
+	json                bool
+	yaml                bool
+	table               bool
+	csv                 bool
+	release             string
+	chart               string
+	log                 *logrus.Logger
+	renderer            renderer.Config
 }
 
 type Skip struct {
@@ -115,22 +118,20 @@ func (image *Images) GetImages() error {
 			continue
 		}
 
-		if len(skips) != 0 {
-			var tobeSkipped bool
+		shouldSkip := false
 
-			for _, skip := range skips {
-				if skip.Name == strings.ToLower(currentManifestName) && skip.Kind == strings.ToLower(currentKind) {
-					image.log.Debugf("skipping '%s' bearing name '%s' since it is set to skip", currentKind, currentManifestName)
+		for _, skip := range skips {
+			if skip.Name == strings.ToLower(currentManifestName) && skip.Kind == strings.ToLower(currentKind) {
+				image.log.Debugf("Skipping '%s' bearing name '%s' since it is set to skip.", currentKind, currentManifestName)
 
-					tobeSkipped = true
+				shouldSkip = true
 
-					break
-				}
+				break
 			}
+		}
 
-			if tobeSkipped {
-				continue
-			}
+		if shouldSkip {
+			continue
 		}
 
 		image.log.Debugf("fetching images from '%s' of kind '%s'", currentKind, currentManifestName)
@@ -213,42 +214,42 @@ func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Imag
 
 	switch currentKind {
 	case k8s.KindDeployment:
-		deployImages, err := k8s.NewDeployment().Get(kubeKindTemplate, image.log)
+		deployImages, err := k8s.NewDeployment().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, deployImages)
 	case k8s.KindStatefulSet:
-		stsImages, err := k8s.NewStatefulSet().Get(kubeKindTemplate, image.log)
+		stsImages, err := k8s.NewStatefulSet().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, stsImages)
 	case k8s.KindDaemonSet:
-		daemonImages, err := k8s.NewDaemonSet().Get(kubeKindTemplate, image.log)
+		daemonImages, err := k8s.NewDaemonSet().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, daemonImages)
 	case k8s.KindReplicaSet:
-		replicaSets, err := k8s.NewReplicaSets().Get(kubeKindTemplate, image.log)
+		replicaSets, err := k8s.NewReplicaSets().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, replicaSets)
 	case k8s.KindPod:
-		pods, err := k8s.NewPod().Get(kubeKindTemplate, image.log)
+		pods, err := k8s.NewPod().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, pods)
 	case k8s.KindConfigMap:
-		configMap, err := k8s.NewConfigMap().Get(kubeKindTemplate, image.log)
+		configMap, err := k8s.NewConfigMap().Get(kubeKindTemplate, image.ConfigMapImageRegex, image.log)
 		if err != nil {
 			return nil, err
 		}
@@ -257,56 +258,56 @@ func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Imag
 			images = append(images, configMap)
 		}
 	case k8s.KindCronJob:
-		cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate, image.log)
+		cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, cronJob)
 	case k8s.KindJob:
-		job, err := k8s.NewJob().Get(kubeKindTemplate, image.log)
+		job, err := k8s.NewJob().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, job)
 	case monitoringV1.AlertmanagersKind:
-		alertManager, err := k8s.NewAlertManager().Get(kubeKindTemplate, image.log)
+		alertManager, err := k8s.NewAlertManager().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, alertManager)
 	case monitoringV1.PrometheusesKind:
-		prometheus, err := k8s.NewPrometheus().Get(kubeKindTemplate, image.log)
+		prometheus, err := k8s.NewPrometheus().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, prometheus)
 	case monitoringV1.ThanosRulerKind:
-		thanosRuler, err := k8s.NewThanosRuler().Get(kubeKindTemplate, image.log)
+		thanosRuler, err := k8s.NewThanosRuler().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, thanosRuler)
 	case k8s.KindThanos:
-		thanos, err := k8s.NewThanos().Get(kubeKindTemplate, image.log)
+		thanos, err := k8s.NewThanos().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, thanos)
 	case k8s.KindThanosReceiver:
-		thanosReceiver, err := k8s.NewThanosReceiver().Get(kubeKindTemplate, image.log)
+		thanosReceiver, err := k8s.NewThanosReceiver().Get(kubeKindTemplate, "", image.log)
 		if err != nil {
 			return nil, err
 		}
 
 		images = append(images, thanosReceiver)
 	case k8s.KindGrafana:
-		grafana, err := k8s.NewGrafana().Get(kubeKindTemplate, image.log)
+		grafana, err := k8s.NewGrafana().Get(kubeKindTemplate, "", image.log)
 
 		grafanaErr := &imgErrors.GrafanaAPIVersionSupportError{}
 		if err != nil {
@@ -330,6 +331,7 @@ func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Imag
 // GetImagesFromKind returns list of images from array of k8s.Image.
 func GetImagesFromKind(kinds []*k8s.Image) []string {
 	var images []string
+
 	for _, knd := range kinds {
 		images = append(images, knd.Image...)
 	}

@@ -34,7 +34,7 @@ local.check: local.fmt ## Loads all the dependencies to vendor directory
 	@go mod tidy
 
 local.build: local.check ## Generates the artifact with the help of 'go build'
-	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} goreleaser build --clean
+	@go build -o $(APP_NAME) -ldflags="-s -w"
 
 local.snapshot: local.check ## Generates the artifact with the help of 'go build'
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} goreleaser build --snapshot --clean
@@ -43,6 +43,10 @@ local.push: local.build ## Pushes built artifact to the specified location
 
 local.run: local.build ## Generates the artifact and start the service in the current directory
 	./${APP_NAME}
+
+local.deploy: local.build ## Deploys a locally built helm plugins
+	@rm -rf ${HOME}/Library/helm/plugins/helm-images/bin/helm-images
+	@cp helm-images ${HOME}/Library/helm/plugins/helm-images/bin/helm-images
 
 publish: local.check ## Builds and publishes the app
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --clean

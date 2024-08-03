@@ -73,3 +73,11 @@ data:
       type: foo
     - name: foolist
       type: bar
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-cm
+data:
+  test.yml: |
+    foo_image_bar: SHOLD_NOT_PRINT_THIS

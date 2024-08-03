@@ -35,7 +35,7 @@ config:
 		err := yaml.Unmarshal([]byte(yamlData), &valueMap)
 		require.NoError(t, err)
 
-		valueFound, _ := k8s.GetImage(valueMap, "image")
+		valueFound, _ := k8s.GetImage(valueMap, "image", "", nil)
 		assert.ElementsMatch(t, []string{
 			"ghcr.io/example/config:v2.3.0",
 			"ghcr.io/example/testConfig:v2.3.0",
@@ -49,7 +49,7 @@ config:
 		err := json.Unmarshal([]byte(jsonData), &valueMap)
 		require.NoError(t, err)
 
-		valueFound, _ := k8s.GetImage(valueMap, "image")
+		valueFound, _ := k8s.GetImage(valueMap, "image", "", nil)
 		assert.ElementsMatch(t, []string{
 			"ghcr.io/prometheus/prom:v2.0.0",
 			"ghcr.io/example/sample:v2.2.0",

@@ -7,7 +7,7 @@ import (
 )
 
 func (image *Images) setOutput(images []*k8s.Image) interface{} {
-	images = image.FilterImagesByRegistries(images)
+	images = image.FilterImagesByRegistriesNew(images)
 
 	var output interface{}
 	output = images

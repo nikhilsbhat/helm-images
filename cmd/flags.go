@@ -44,6 +44,8 @@ func registerGetFlags(cmd *cobra.Command) {
 		"log level for the plugin helm images (defaults to info)")
 	cmd.PersistentFlags().StringVarP(&images.ImageRegex, "image-regex", "", pkg.ImageRegex,
 		"regex used to split helm template rendered")
+	cmd.PersistentFlags().StringVarP(&images.ConfigMapImageRegex, "configmap-image-regex", "", pkg.ConfigMapImageRegex,
+		"regex used to split helm template rendered")
 	cmd.PersistentFlags().BoolVarP(&images.UniqueImages, "unique", "u", false,
 		"enable the flag if duplicates to be removed from the retrieved list (disabled by default also overrides --kind)")
 	cmd.PersistentFlags().StringVarP(&images.OutputFormat, "output", "o", "",

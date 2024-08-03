@@ -3,6 +3,7 @@ package k8s
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
@@ -49,6 +50,7 @@ type (
 	Pod          coreV1.Pod
 	Kind         map[string]interface{}
 	Name         map[string]interface{}
+	Resource     map[string]interface{}
 	containers   struct {
 		containers []coreV1.Container
 	}
@@ -68,7 +70,7 @@ type KindInterface interface {
 
 // ImagesInterface implements method that gets images from various kubernetes workloads.
 type ImagesInterface interface {
-	Get(dataMap string, log *logrus.Logger) (*Image, error)
+	Get(dataMap string, imageRegex string, log *logrus.Logger) (*Image, error)
 }
 
 // Image holds information of images retrieved.
@@ -116,7 +118,7 @@ func (kin *Kind) Get(dataMap string, _ *logrus.Logger) (string, error) {
 }
 
 // Get identifies images from Deployments.
-func (dep *Deployments) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *Deployments) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -135,7 +137,7 @@ func (dep *Deployments) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from StatefulSets.
-func (dep *StatefulSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *StatefulSets) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -154,7 +156,7 @@ func (dep *StatefulSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from DaemonSets.
-func (dep *DaemonSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *DaemonSets) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -173,7 +175,7 @@ func (dep *DaemonSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from CronJob.
-func (dep *CronJob) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *CronJob) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -193,7 +195,7 @@ func (dep *CronJob) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from Job.
-func (dep *Job) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *Job) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -212,7 +214,7 @@ func (dep *Job) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from ReplicaSets.
-func (dep *ReplicaSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *ReplicaSets) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -231,7 +233,7 @@ func (dep *ReplicaSets) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from Pod.
-func (dep *Pod) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *Pod) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -250,7 +252,7 @@ func (dep *Pod) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from AlertManager.
-func (dep *AlertManager) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *AlertManager) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -265,7 +267,7 @@ func (dep *AlertManager) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from Prometheus.
-func (dep *Prometheus) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *Prometheus) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -287,7 +289,7 @@ func (dep *Prometheus) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from ThanosRuler.
-func (dep *ThanosRuler) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *ThanosRuler) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -309,7 +311,7 @@ func (dep *ThanosRuler) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from Grafana.
-func (dep *Grafana) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *Grafana) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -333,7 +335,7 @@ func (dep *Grafana) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from Thanos.
-func (dep *Thanos) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *Thanos) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -360,7 +362,7 @@ func (dep *Thanos) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
 }
 
 // Get identifies images from ThanosReceiver.
-func (dep *ThanosReceiver) Get(dataMap string, _ *logrus.Logger) (*Image, error) {
+func (dep *ThanosReceiver) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -384,7 +386,7 @@ func (dep *ThanosReceiver) Get(dataMap string, _ *logrus.Logger) (*Image, error)
 	return images, nil
 }
 
-func (dep *ConfigMap) Get(dataMap string, log *logrus.Logger) (*Image, error) {
+func (dep *ConfigMap) Get(dataMap string, imageRegex string, log *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
 		return nil, err
 	}
@@ -394,6 +396,8 @@ func (dep *ConfigMap) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 		Name:  dep.Name,
 		Image: make([]string, 0),
 	}
+
+	log.Debugf("using regex '%s' for identifying images from configmap", imageRegex)
 
 	for key, value := range dep.Data {
 		var valueMap interface{}
@@ -408,7 +412,7 @@ func (dep *ConfigMap) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 				continue
 			}
 
-			valuesFound, found := GetImage(GetData(valueMap), key)
+			valuesFound, found := GetImage(GetData(valueMap), key, imageRegex, log)
 			if !found {
 				continue
 			}
@@ -421,19 +425,20 @@ func (dep *ConfigMap) Get(dataMap string, log *logrus.Logger) (*Image, error) {
 				continue
 			}
 
-			valuesFound, found := GetImage(GetData(valueMap), key)
+			valuesFound, found := GetImage(GetData(valueMap), key, imageRegex, log)
 			if !found {
 				continue
 			}
 
 			images.Image = append(images.Image, valuesFound...)
-		case content.FileTypeString:
-			if strings.Contains(strings.ToLower(key), "image") {
-				images.Image = append(images.Image, value)
+		case content.FileTypeString, content.FileTypeUnknown:
+			imageFound, err := imageMatch(imageRegex, strings.ToLower(key))
+			if err != nil {
+				return nil, err
 			}
-		default:
-			if strings.Contains(strings.ToLower(key), "image") {
-				images.Image = append(images.Image, value)
+
+			if imageFound {
+				images.Image = append(images.Image, key)
 			}
 		}
 	}
@@ -562,72 +567,71 @@ func (cont containers) getImages() []string {
 }
 
 //nolint:nonamedreturns
-func GetImage(data map[string]any, key string) (values []string, valuesFound bool) {
+func GetImage(data map[string]any, key, regex string, log *logrus.Logger) (values []string, valuesFound bool) {
 	for dataKey, dataValue := range data {
-		if strings.Contains(strings.ToLower(dataKey), "image") {
-			switch dataValueType := dataValue.(type) {
-			case string:
-				if len(dataValueType) != 0 {
-					values = append(values, dataValueType)
-					valuesFound = true
-				}
-			default:
-				continue
+		imageFound, err := imageMatch(regex, strings.ToLower(dataKey))
+		if err != nil {
+			return nil, false
+		}
+
+		if imageFound {
+			log.Debugf("found image '%s' for regex '%s'", dataKey, regex)
+
+			if strValue, ok := dataValue.(string); ok && len(strValue) > 0 {
+				values = append(values, strValue)
+				valuesFound = true
 			}
 		}
 
 		switch dataValueType := dataValue.(type) {
 		case []interface{}:
-			for _, v := range dataValueType {
-				switch nestedValueType := v.(type) {
-				case string:
-					continue
-				case map[string]interface{}:
-					if result, found := GetImage(nestedValueType, key); found {
-						values = append(values, result...)
-						valuesFound = found
+			for _, item := range dataValueType {
+				if nestedMap, ok := item.(map[string]interface{}); ok {
+					if nestedValues, found := GetImage(nestedMap, key, regex, log); found {
+						values = append(values, nestedValues...)
+						valuesFound = true
 					}
-				default:
-					continue
 				}
 			}
-		case map[string]any:
-			if result, found := GetImage(dataValueType, key); found {
-				values = append(values, result...)
-				valuesFound = found
+		case map[string]interface{}:
+			if nestedValues, found := GetImage(dataValueType, key, regex, log); found {
+				values = append(values, nestedValues...)
+				valuesFound = true
 			}
-		default:
-			continue
 		}
 	}
 
 	return values, valuesFound
 }
 
-func GetData(value interface{}) map[string]any {
+func GetData(value interface{}) map[string]interface{} {
+	valueMap := make(map[string]interface{})
+
 	switch dataValueType := value.(type) {
 	case []map[string]interface{}:
-		return dataValueType[0]
+		if len(dataValueType) > 0 {
+			return dataValueType[0]
+		}
 	case map[string]interface{}:
 		return dataValueType
 	case []interface{}:
-		valueMap := make(map[string]interface{})
-
-		for _, v := range dataValueType {
-			switch nestedValueType := v.(type) {
-			case string:
-				continue
-			case map[string]interface{}:
-				for nestedKey, nestedValue := range nestedValueType {
+		for _, item := range dataValueType {
+			if nestedMap, ok := item.(map[string]interface{}); ok {
+				for nestedKey, nestedValue := range nestedMap {
 					valueMap[nestedKey] = nestedValue
 				}
-			default:
-				continue
 			}
 		}
-
-		return valueMap
-	default:
-		return map[string]any{}
 	}
+
+	return valueMap
+}
+
+func imageMatch(imageRegex, imageString string) (bool, error) {
+	regex, err := regexp.Compile(imageRegex)
+	if err != nil {
+		return false, err
+	}
+
+	return regex.MatchString(imageString), nil
 }
