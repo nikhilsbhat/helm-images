@@ -7,6 +7,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetVal(t *testing.T) {
@@ -32,7 +33,8 @@ config:
 		valueMap := make(map[string]interface{})
 
 		err := yaml.Unmarshal([]byte(yamlData), &valueMap)
-		assert.NoError(t, err)
+		require.NoError(t, err)
+
 		valueFound, _ := k8s.GetImage(valueMap, "image")
 		assert.ElementsMatch(t, []string{
 			"ghcr.io/example/config:v2.3.0",
@@ -45,7 +47,8 @@ config:
 		valueMap := make(map[string]interface{})
 
 		err := json.Unmarshal([]byte(jsonData), &valueMap)
-		assert.NoError(t, err)
+		require.NoError(t, err)
+
 		valueFound, _ := k8s.GetImage(valueMap, "image")
 		assert.ElementsMatch(t, []string{
 			"ghcr.io/prometheus/prom:v2.0.0",

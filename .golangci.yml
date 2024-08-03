@@ -17,6 +17,7 @@ linters:
     - depguard
     - dupword
     - tagalign
+    - perfsprint
 
 issues:
   exclude-rules:

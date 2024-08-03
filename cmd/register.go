@@ -66,7 +66,7 @@ func getImagesCommand() *cobra.Command {
   helm images get kong-2.35.0.tgz -o json`,
 		Args:    validateAndSetArgs,
 		PreRunE: setCLIClient,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cmd.SilenceUsage = true
 
 			return images.GetImages()
@@ -99,7 +99,7 @@ func getRootCommand() *cobra.Command {
 		Short: "Utility that helps in fetching images which are part of deployment",
 		Long:  `Lists all images that would be part of helm deployment.`,
 		Args:  cobra.MinimumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Usage()
 		},
 	}

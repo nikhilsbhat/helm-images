@@ -121,7 +121,7 @@ func TestImages_SetRelease(t *testing.T) {
 		imageClient := pkg.Images{}
 		imageClient.SetRelease("testRelease")
 
-		assert.Equal(t, imageClient.GetRelease(), "testRelease")
+		assert.Equal(t, "testRelease", imageClient.GetRelease())
 	})
 }
 
@@ -130,6 +130,6 @@ func TestImages_SetChart(t *testing.T) {
 		imageClient := pkg.Images{}
 		imageClient.SetChart("testChart")
 
-		assert.Equal(t, imageClient.GetChart(), "testChart")
+		assert.Equal(t, "testChart", imageClient.GetChart())
 	})
 }

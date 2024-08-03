@@ -36,6 +36,6 @@ func Test_contains(t *testing.T) {
 			"quay.io/prometheus/alertmanager:v0.21.0",
 		}
 		actual := pkg.Contains(sampleMap, "quay.io/prometheus/alertmanager:v0.21.0")
-		assert.Equal(t, true, actual)
+		assert.True(t, true, actual)
 	})
 }
