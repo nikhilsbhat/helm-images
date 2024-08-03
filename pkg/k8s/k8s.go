@@ -438,7 +438,7 @@ func (dep *ConfigMap) Get(dataMap string, imageRegex string, log *logrus.Logger)
 			}
 
 			if imageFound {
-				images.Image = append(images.Image, key)
+				images.Image = append(images.Image, value)
 			}
 		}
 	}
