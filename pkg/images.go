@@ -25,32 +25,37 @@ const (
 
 // Images represents GetImages.
 type Images struct {
-	Registries          []string   `json:"registries,omitempty"            yaml:"registries,omitempty"`
-	Kind                []string   `json:"kind,omitempty"                  yaml:"kind,omitempty"`
-	Values              []string   `json:"values,omitempty"                yaml:"values,omitempty"`
-	StringValues        []string   `json:"string_values,omitempty"         yaml:"string_values,omitempty"`
-	FileValues          []string   `json:"file_values,omitempty"           yaml:"file_values,omitempty"`
-	ShowOnly            []string   `json:"show_only,omitempty"             yaml:"show_only,omitempty"`
-	Skip                []string   `json:"skip,omitempty"                  yaml:"skip,omitempty"`
-	Version             string     `json:"version,omitempty"               yaml:"version,omitempty"`
-	ImageRegex          string     `json:"image_regex,omitempty"           yaml:"image_regex,omitempty"`
-	ConfigMapImageRegex string     `json:"configmap_image_regex,omitempty" yaml:"configmap_image_regex,omitempty"`
-	ValueFiles          ValueFiles `json:"value_files,omitempty"           yaml:"value_files,omitempty"`
-	LogLevel            string     `json:"log_level,omitempty"             yaml:"log_level,omitempty"`
-	OutputFormat        string     `json:"output_format,omitempty"         yaml:"output_format,omitempty"`
-	Revision            int        `json:"revision,omitempty"              yaml:"revision,omitempty"`
-	SkipTests           bool       `json:"skip_tests,omitempty"            yaml:"skip_tests,omitempty"`
-	SkipCRDS            bool       `json:"skip_crds,omitempty"             yaml:"skip_crds,omitempty"`
-	FromRelease         bool       `json:"from_release,omitempty"          yaml:"from_release,omitempty"`
-	UniqueImages        bool       `json:"unique_images,omitempty"         yaml:"unique_images,omitempty"`
-	NoColor             bool       `json:"no_color,omitempty"              yaml:"no_color,omitempty"`
-	Validate            bool       `json:"validate,omitempty"              yaml:"validate,omitempty"`
+	Registries          []string   `json:"registries,omitempty"              yaml:"registries,omitempty"`
+	Kind                []string   `json:"kind,omitempty"                    yaml:"kind,omitempty"`
+	Values              []string   `json:"values,omitempty"                  yaml:"values,omitempty"`
+	StringValues        []string   `json:"string_values,omitempty"           yaml:"string_values,omitempty"`
+	FileValues          []string   `json:"file_values,omitempty"             yaml:"file_values,omitempty"`
+	ShowOnly            []string   `json:"show_only,omitempty"               yaml:"show_only,omitempty"`
+	Skip                []string   `json:"skip,omitempty"                    yaml:"skip,omitempty"`
+	SkipReleases        []string   `json:"skip_releases,omitempty"           yaml:"skip_releases,omitempty"`
+	Version             string     `json:"version,omitempty"                 yaml:"version,omitempty"`
+	ImageRegex          string     `json:"image_regex,omitempty"             yaml:"image_regex,omitempty"`
+	ConfigMapImageRegex string     `json:"configmap_image_regex,omitempty"   yaml:"configmap_image_regex,omitempty"`
+	ValueFiles          ValueFiles `json:"value_files,omitempty"             yaml:"value_files,omitempty"`
+	LogLevel            string     `json:"log_level,omitempty"               yaml:"log_level,omitempty"`
+	OutputFormat        string     `json:"output_format,omitempty"           yaml:"output_format,omitempty"`
+	Revision            int        `json:"revision,omitempty"                yaml:"revision,omitempty"`
+	SkipTests           bool       `json:"skip_tests,omitempty"              yaml:"skip_tests,omitempty"`
+	SkipCRDS            bool       `json:"skip_crds,omitempty"               yaml:"skip_crds,omitempty"`
+	FromRelease         bool       `json:"from_release,omitempty"            yaml:"from_release,omitempty"`
+	UniqueImages        bool       `json:"unique_images,omitempty"           yaml:"unique_images,omitempty"`
+	NoColor             bool       `json:"no_color,omitempty"                yaml:"no_color,omitempty"`
+	Validate            bool       `json:"validate,omitempty"                yaml:"validate,omitempty"`
+	IsDefaultNamespace  bool       `json:"is_default_namespace,omitempty"    yaml:"is_default_namespace,omitempty"`
+	releasesToSkip      []skipReleaseInfo
 	json                bool
 	yaml                bool
 	table               bool
 	csv                 bool
+	all                 bool
 	release             string
 	chart               string
+	namespace           string
 	log                 *logrus.Logger
 	renderer            renderer.Config
 }
@@ -58,6 +63,16 @@ type Images struct {
 type Skip struct {
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 	Kind string `json:"kind,omitempty" yaml:"kind,omitempty"`
+}
+
+// SetAll would be set when images to be retrieved from all releases.
+func (image *Images) SetAll(all bool) {
+	image.all = all
+}
+
+// SetNamespace sets namespace passed.
+func (image *Images) SetNamespace(namespace string) {
+	image.namespace = namespace
 }
 
 // SetRelease sets release passed.
@@ -79,6 +94,11 @@ func (image *Images) SetRenderer() {
 // GetRelease returns the release set under Images.
 func (image *Images) GetRelease() string {
 	return image.release
+}
+
+// GetNamespace returns the namespace set under Images.
+func (image *Images) GetNamespace() string {
+	return image.namespace
 }
 
 // GetChart returns the chart set under Images.

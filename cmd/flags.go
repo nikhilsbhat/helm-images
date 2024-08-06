@@ -32,8 +32,8 @@ func registerFlags(cmd *cobra.Command) {
 		"revision of your release from which the images to be fetched")
 }
 
-// Registers all flags to command, get.
-func registerGetFlags(cmd *cobra.Command) {
+// Registers all common flags to commands, get and all.
+func registerCommonFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringSliceVarP(&images.Registries, "registry", "r", nil,
 		"registry name (docker images belonging to this registry)")
 	cmd.PersistentFlags().StringSliceVarP(&images.Skip, "skip", "", nil,
@@ -50,8 +50,19 @@ func registerGetFlags(cmd *cobra.Command) {
 		"enable the flag if duplicates to be removed from the retrieved list (disabled by default also overrides --kind)")
 	cmd.PersistentFlags().StringVarP(&images.OutputFormat, "output", "o", "",
 		"the format to which the output should be rendered to, it should be one of yaml|json|table|csv, if nothing specified it sets to default")
-	cmd.PersistentFlags().BoolVarP(&images.FromRelease, "from-release", "", false,
-		"enable the flag to fetch the images from release instead (disabled by default)")
 	cmd.PersistentFlags().BoolVarP(&images.NoColor, "no-color", "", false,
 		"when enabled does not color encode the output")
+}
+
+// Registers all flags to command, get.
+func registerGetFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().BoolVarP(&images.FromRelease, "from-release", "", false,
+		"enable the flag to fetch the images from release instead (disabled by default)")
+}
+
+func registerGetAllFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringArrayVar(&images.SkipReleases, "skip-release", nil,
+		"list of helm releases to be skipped for identifying helm images, ex: ReleaseName=Namespace | ReleaseName=Namespace")
+	cmd.PersistentFlags().BoolVarP(&images.IsDefaultNamespace, "default-namespace", "", false,
+		"set this flag if drifts have to be checked specifically in 'default' namespace")
 }

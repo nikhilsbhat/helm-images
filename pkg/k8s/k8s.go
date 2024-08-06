@@ -75,9 +75,14 @@ type ImagesInterface interface {
 
 // Image holds information of images retrieved.
 type Image struct {
-	Kind  string   `json:"kind,omitempty" yaml:"kind,omitempty"`
-	Name  string   `json:"name,omitempty" yaml:"name,omitempty"`
+	Kind  string   `json:"kind,omitempty"  yaml:"kind,omitempty"`
+	Name  string   `json:"name,omitempty"  yaml:"name,omitempty"`
 	Image []string `json:"image,omitempty" yaml:"image,omitempty"`
+}
+
+type Images struct {
+	ImagesFromRelease interface{} `json:"images_from_release,omitempty" yaml:"images_from_release,omitempty"`
+	NameSpace         string      `json:"name_space,omitempty"          yaml:"name_space,omitempty"`
 }
 
 func (name *Name) Get(dataMap string, log *logrus.Logger) (string, error) {

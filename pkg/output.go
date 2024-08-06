@@ -42,7 +42,10 @@ func (image *Images) SetOutputFormats() {
 	case "json", "j":
 		image.json = true
 	case "table", "t":
-		image.table = true
+		if image.all {
+			image.log.Info("rendering results to 'table' format is not supported while fetching images from all releases, hence setting to default")
+			image.table = false
+		}
 	case "csv", "c":
 		image.csv = true
 	default:
