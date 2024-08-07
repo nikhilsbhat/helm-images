@@ -99,27 +99,34 @@ func (name *Name) Get(dataMap string, log *logrus.Logger) (string, error) {
 		return "", nil
 	}
 
-	value, failedManifest := metadata["name"].(string)
-	if !failedManifest {
+	metadataName, metadataNameExists := metadata["name"].(string)
+	if !metadataNameExists {
 		return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'name' is not type string"}
 	}
 
-	return value, nil
+	return metadataName, nil
 }
 
-func (kin *Kind) Get(dataMap string, _ *logrus.Logger) (string, error) {
+func (kin *Kind) Get(dataMap string, log *logrus.Logger) (string, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &kin); err != nil {
 		return "", err
 	}
 
-	kindYaml := *kin
+	if kin == nil {
+		log.Warn("looks like it manifest is empty")
 
-	value, ok := kindYaml[kubeKind].(string)
-	if !ok {
-		return "", &imgErrors.ImageError{Message: "failed to get name from the manifest, 'kind' is not type string"}
+		return "", nil
 	}
 
-	return value, nil
+	kindYaml := *kin
+
+	kind, kindExists := kindYaml[kubeKind].(string)
+	if !kindExists {
+		log.Warn("failed to get 'kind' from the manifest")
+		return "", nil
+	}
+
+	return kind, nil
 }
 
 // Get identifies images from Deployments.
