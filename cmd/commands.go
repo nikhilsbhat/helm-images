@@ -19,7 +19,6 @@ func getRootCommand() *cobra.Command {
 		Use:   "images [command]",
 		Short: "Utility that helps in fetching images which are part of deployment",
 		Long:  `Lists all images that would be part of helm deployment.`,
-		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Usage()
 		},
@@ -56,8 +55,8 @@ func getImagesCommand() *cobra.Command {
 }
 
 func getAllImagesCommand() *cobra.Command {
-	imageCommand := &cobra.Command{
-		Use:   "all [RELEASE] [CHART] [flags]",
+	allImageCommand := &cobra.Command{
+		Use:   "all [flags]",
 		Short: "Fetches all images from all release",
 		Long:  "Lists all images part of all release present in the cluster with matching pattern or part of specified registry.",
 		Example: `  helm images all -o yaml
@@ -69,9 +68,7 @@ func getAllImagesCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cmd.SilenceUsage = true
 
-			images.SetAll(true)
 			images.SetNamespace(os.Getenv("HELM_NAMESPACE"))
-			images.SetOutputFormats()
 
 			if err := images.SetReleasesToSkips(); err != nil {
 				return err
@@ -81,10 +78,10 @@ func getAllImagesCommand() *cobra.Command {
 		},
 	}
 
-	registerCommonFlags(imageCommand)
-	registerGetAllFlags(imageCommand)
+	registerCommonFlags(allImageCommand)
+	registerGetAllFlags(allImageCommand)
 
-	return imageCommand
+	return allImageCommand
 }
 
 func getVersionCommand() *cobra.Command {
@@ -119,7 +116,7 @@ func versionConfig(_ *cobra.Command, _ []string) error {
 	return nil
 }
 
-func setCLIClient(_ *cobra.Command, _ []string) error {
+func setCLIClient(cmd *cobra.Command, _ []string) error {
 	logger := logrus.New()
 	logger.SetLevel(pkg.GetLoglevel(images.LogLevel))
 	logger.WithField("helm-images", true)
@@ -127,6 +124,11 @@ func setCLIClient(_ *cobra.Command, _ []string) error {
 	cliLogger = logger
 
 	images.SetLogger(images.LogLevel)
+
+	if cmd.Use == "all [flags]" {
+		images.SetAll(true)
+	}
+
 	images.SetOutputFormats()
 
 	images.SetRenderer()
