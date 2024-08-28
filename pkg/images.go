@@ -1,10 +1,12 @@
 package pkg
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"reflect"
-	"regexp"
 	"strings"
 
 	"github.com/nikhilsbhat/common/renderer"
@@ -13,6 +15,7 @@ import (
 	monitoringV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -117,7 +120,11 @@ func (image *Images) GetImages() error {
 	}
 
 	images := make([]*k8s.Image, 0)
-	kubeKindTemplates := image.GetTemplates(chart)
+	kubeKindTemplates, err := image.GetTemplates(chart)
+	if err != nil {
+		return err
+	}
+
 	skips := image.GetResourcesToSkip()
 
 	for _, kubeKindTemplate := range kubeKindTemplates {
@@ -194,15 +201,29 @@ func (image *Images) getChartManifests() ([]byte, error) {
 	return image.getChartFromTemplate()
 }
 
-// GetTemplates returns the split manifests fetched from one big template string fetched from `helm template`.
-func (image *Images) GetTemplates(template []byte) []string {
-	image.log.Debugf("splitting helm manifests with regex pattern: '%s'", image.ImageRegex)
-	temp := regexp.MustCompile(image.ImageRegex)
-	kinds := temp.Split(string(template), -1)
-	// Removing empty string at the beginning as splitting string always adds it in front.
-	kinds = kinds[1:]
+// GetTemplates returns each of the manifests fetched from one big template string fetched from `helm template`.
+func (image *Images) GetTemplates(template []byte) ([]map[string]interface{}, error) {
+	var templates []map[string]interface{}
+	decoder := yaml.NewDecoder(bytes.NewReader(template))
+	docCount := 0
 
-	return kinds
+	for {
+		var doc map[string]interface{}
+		docCount += 1
+		err := decoder.Decode(&doc)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, fmt.Errorf("error decoding YAML in document %d: %v", docCount, err)
+		}
+
+		if len(doc) > 0 {
+			templates = append(templates, doc)
+		}
+	}
+
+	return templates, nil
 }
 
 // GetResourcesToSkip returns the skip from translating the flags.
@@ -229,7 +250,7 @@ func (image *Images) GetResourcesToSkip() []Skip {
 // GetImage returns []*k8s.Image from the kubernetes manifests.
 //
 //nolint:gocognit,funlen
-func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Image, error) {
+func (image *Images) GetImage(currentKind string, kubeKindTemplate map[string]interface{}) ([]*k8s.Image, error) {
 	images := make([]*k8s.Image, 0)
 
 	switch currentKind {

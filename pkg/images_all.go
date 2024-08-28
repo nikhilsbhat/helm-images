@@ -28,7 +28,11 @@ func (image *Images) GetAllImages() error {
 		image.log.Debugf("fetching the images from release '%s' of namespace '%s'", release.Name, release.Namespace)
 
 		images := make([]*k8s.Image, 0)
-		kubeKindTemplates := image.GetTemplates([]byte(release.Manifest))
+		kubeKindTemplates, err := image.GetTemplates([]byte(release.Manifest))
+		if err != nil {
+			return err
+		}
+
 		skips := image.GetResourcesToSkip()
 
 		for _, kubeKindTemplate := range kubeKindTemplates {
