@@ -40,6 +40,7 @@ type Images struct {
 	LogLevel            string     `json:"log_level,omitempty"               yaml:"log_level,omitempty"`
 	OutputFormat        string     `json:"output_format,omitempty"           yaml:"output_format,omitempty"`
 	Revision            int        `json:"revision,omitempty"                yaml:"revision,omitempty"`
+	Raw                 bool       `json:"raw,omitempty"                     yaml:"raw,omitempty"`
 	SkipTests           bool       `json:"skip_tests,omitempty"              yaml:"skip_tests,omitempty"`
 	SkipCRDS            bool       `json:"skip_crds,omitempty"               yaml:"skip_crds,omitempty"`
 	FromRelease         bool       `json:"from_release,omitempty"            yaml:"from_release,omitempty"`
@@ -53,6 +54,7 @@ type Images struct {
 	table               bool
 	csv                 bool
 	all                 bool
+	raw                 []byte
 	release             string
 	chart               string
 	namespace           string
@@ -83,6 +85,11 @@ func (image *Images) SetRelease(release string) {
 // SetChart sets chart passed.
 func (image *Images) SetChart(chart string) {
 	image.chart = chart
+}
+
+// SetRaw sets raw.
+func (image *Images) SetRaw(raw []byte) {
+	image.raw = raw
 }
 
 // SetRenderer sets renderer to Images.
@@ -183,6 +190,12 @@ func (image *Images) GetImages() error {
 }
 
 func (image *Images) getChartManifests() ([]byte, error) {
+	if image.Raw {
+		image.log.Debug("reading the manifest from stdin")
+
+		return image.raw, nil
+	}
+
 	if image.FromRelease {
 		image.log.Debugf("from-release is selected, hence fetching manifests for '%s' from helm release", image.release)
 

@@ -58,6 +58,8 @@ func registerCommonFlags(cmd *cobra.Command) {
 func registerGetFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVarP(&images.FromRelease, "from-release", "", false,
 		"enable the flag to fetch the images from release instead (disabled by default)")
+	cmd.PersistentFlags().BoolVarP(&images.Raw, "raw", "", false,
+		"when enabled, expects raw kubernetes manifests rather helm release or chart")
 }
 
 func registerGetAllFlags(cmd *cobra.Command) {

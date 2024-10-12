@@ -123,6 +123,7 @@ func (kin *Kind) Get(dataMap string, log *logrus.Logger) (string, error) {
 	kind, kindExists := kindYaml[kubeKind].(string)
 	if !kindExists {
 		log.Warn("failed to get 'kind' from the manifest")
+
 		return "", nil
 	}
 

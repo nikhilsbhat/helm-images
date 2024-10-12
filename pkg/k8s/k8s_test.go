@@ -5,12 +5,15 @@ import (
 	"testing"
 
 	"github.com/ghodss/yaml"
+	"github.com/nikhilsbhat/helm-images/pkg"
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetVal(t *testing.T) {
+	log := logrus.New()
 	yamlData := `image: 'ghcr.io/example/sample:v2.2.0'
 enemies: aliens
 lives: '3'
@@ -35,7 +38,7 @@ config:
 		err := yaml.Unmarshal([]byte(yamlData), &valueMap)
 		require.NoError(t, err)
 
-		valueFound, _ := k8s.GetImage(valueMap, "image", "", nil)
+		valueFound, _ := k8s.GetImage(valueMap, "image", pkg.ConfigMapImageRegex, log)
 		assert.ElementsMatch(t, []string{
 			"ghcr.io/example/config:v2.3.0",
 			"ghcr.io/example/testConfig:v2.3.0",
@@ -49,9 +52,8 @@ config:
 		err := json.Unmarshal([]byte(jsonData), &valueMap)
 		require.NoError(t, err)
 
-		valueFound, _ := k8s.GetImage(valueMap, "image", "", nil)
+		valueFound, _ := k8s.GetImage(valueMap, "image", pkg.ConfigMapImageRegex, log)
 		assert.ElementsMatch(t, []string{
-			"ghcr.io/prometheus/prom:v2.0.0",
 			"ghcr.io/example/sample:v2.2.0",
 			"ghcr.io/example/config:v2.3.0",
 		}, valueFound)

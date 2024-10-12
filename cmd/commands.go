@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -38,11 +39,23 @@ func getImagesCommand() *cobra.Command {
   helm images get prometheus-standalone --from-release --registry quay.io --unique
   helm images get prometheus-standalone --from-release --registry quay.io -o yaml
   helm images get oci://registry-1.docker.io/bitnamicharts/airflow -o yaml
-  helm images get kong-2.35.0.tgz -o json`,
+  helm images get kong-2.35.0.tgz -o json
+  helm template example/chart/sample | helm images get --raw -
+  helm template example/chart/sample | helm images get --raw - -o yaml`,
 		Args:    validateAndSetArgs,
 		PreRunE: setCLIClient,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cmd.SilenceUsage = true
+
+			if images.Raw {
+				stdIn := cmd.InOrStdin()
+				imagesRaw, err := io.ReadAll(stdIn)
+				if err != nil {
+					return err
+				}
+
+				images.SetRaw(imagesRaw)
+			}
 
 			return images.GetImages()
 		},
@@ -50,6 +63,8 @@ func getImagesCommand() *cobra.Command {
 
 	registerCommonFlags(imageCommand)
 	registerGetFlags(imageCommand)
+
+	imageCommand.MarkFlagsMutuallyExclusive("raw", "from-release")
 
 	return imageCommand
 }
@@ -149,6 +164,10 @@ func validateAndSetArgs(cmd *cobra.Command, args []string) error {
 	defaultReleaseName := "sample"
 	cmd.SilenceUsage = true
 
+	if images.Raw {
+		return nil
+	}
+
 	if images.Revision != 0 && !images.FromRelease {
 		cliLogger.Fatalf("the '--revision' flag can only be used when retrieving images from a release, i.e., when the '--from-release' flag is set")
 	}
@@ -172,6 +191,10 @@ func validateAndSetArgs(cmd *cobra.Command, args []string) error {
 
 	if len(args) > getArgumentCountRelease {
 		cliLogger.Fatal(oneOfThemError)
+	}
+
+	if len(args) == 0 {
+		cliLogger.Fatal("[RELEASE] name missing")
 	}
 
 	images.SetRelease(args[0])
