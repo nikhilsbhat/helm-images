@@ -1,1 +1,11 @@
-# Sample empty manifest
+##;dkljed;lwej fljwe
+{{/*apiVersion: v1*/}}
+{{/*kind: ConfigMap*/}}
+{{/*metadata:*/}}
+{{/*  name: sample-config-map*/}}
+{{/*  namespace: default*/}}
+{{/*data:*/}}
+{{/*  prometheusImage: "ghcr.io/prometheus/prom:v2.0.0"*/}}
+{{/*  image: "ghcr.io/example/sample:v2.2.0"*/}}
+{{/*  enemies: "aliens"*/}}
+{{/*  lives: "3"*/}}

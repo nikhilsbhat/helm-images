@@ -108,7 +108,7 @@ func (name *Name) Get(dataMap string, log *logrus.Logger) (string, error) {
 }
 
 func (kin *Kind) Get(dataMap string, log *logrus.Logger) (string, error) {
-	if err := yaml.Unmarshal([]byte(dataMap), &kin); err != nil {
+	if err := yaml.Unmarshal([]byte(dataMap), kin); err != nil {
 		return "", err
 	}
 

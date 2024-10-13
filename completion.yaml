@@ -25,9 +25,28 @@ commands:
       - no-color
       - o
       - output
+      - raw
       - r
       - registry
       - skip
+      - u
+      - unique
+  - name: all
+    flags:
+      - configmap-image-regex
+      - default-namespace
+      - image-regex
+      - k
+      - kind
+      - l
+      - log-level
+      - no-color
+      - o
+      - output
+      - r
+      - registry
+      - skip
+      - skip-release
       - u
       - unique
   - name: version
