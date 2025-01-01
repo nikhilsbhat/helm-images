@@ -1,0 +1,13 @@
+format: table
+report: all
+ignorefile: .trivyignore
+
+scan:
+  skip-dirs:
+    - example
+    - vendor
+
+  scanners:
+    - vuln
+    - misconfig
+    - secret

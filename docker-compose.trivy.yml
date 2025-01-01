@@ -1,0 +1,7 @@
+services:
+  trivy:
+    image: aquasec/trivy:0.55.0
+    volumes:
+      - ./:/helm-images
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $HOME/Library/Caches:/root/.cache/

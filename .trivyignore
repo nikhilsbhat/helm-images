@@ -1,0 +1,11 @@
+# Ignoring the sample chart used for testing
+example/chart
+
+# Ignoring all the vendor direcotries
+vendor
+
+# Ignoring all python codes
+*.py
+*.pyc
+*.pyo
+venv/
