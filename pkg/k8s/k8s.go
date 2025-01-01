@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
+	crossplaneV1 "github.com/crossplane/crossplane/apis/pkg/v1"
 	"github.com/ghodss/yaml"
 	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
 	"github.com/nikhilsbhat/common/content"
@@ -20,18 +21,21 @@ import (
 )
 
 const (
-	KindDeployment     = "Deployment"
-	KindStatefulSet    = "StatefulSet"
-	KindDaemonSet      = "DaemonSet"
-	KindCronJob        = "CronJob"
-	KindJob            = "Job"
-	KindReplicaSet     = "ReplicaSet"
-	KindPod            = "Pod"
-	KindGrafana        = "Grafana"
-	KindThanos         = "Thanos"
-	KindThanosReceiver = "Receiver"
-	KindConfigMap      = "ConfigMap"
-	kubeKind           = "kind"
+	KindDeployment              = "Deployment"
+	KindStatefulSet             = "StatefulSet"
+	KindDaemonSet               = "DaemonSet"
+	KindCronJob                 = "CronJob"
+	KindJob                     = "Job"
+	KindReplicaSet              = "ReplicaSet"
+	KindPod                     = "Pod"
+	KindGrafana                 = "Grafana"
+	KindThanos                  = "Thanos"
+	KindThanosReceiver          = "Receiver"
+	KindConfigMap               = "ConfigMap"
+	KindCrossPlaneProvider      = "Provider"
+	KindCrossPlaneConfiguration = "Configuration"
+	KindCrossPlaneFunction      = "Function"
+	kubeKind                    = "kind"
 )
 
 var imagesFlags = []string{
@@ -54,13 +58,16 @@ type (
 	containers   struct {
 		containers []coreV1.Container
 	}
-	AlertManager   monitoringV1.Alertmanager
-	Prometheus     monitoringV1.Prometheus
-	ThanosRuler    monitoringV1.ThanosRuler
-	Grafana        grafanaBetaV1.Grafana
-	Thanos         thanosAlphaV1.Thanos
-	ThanosReceiver thanosAlphaV1.Receiver
-	ConfigMap      coreV1.ConfigMap
+	AlertManager            monitoringV1.Alertmanager
+	Prometheus              monitoringV1.Prometheus
+	ThanosRuler             monitoringV1.ThanosRuler
+	Grafana                 grafanaBetaV1.Grafana
+	Thanos                  thanosAlphaV1.Thanos
+	ThanosReceiver          thanosAlphaV1.Receiver
+	ConfigMap               coreV1.ConfigMap
+	CrossPlaneProvider      crossplaneV1.Provider
+	CrossPlaneConfiguration crossplaneV1.Configuration
+	CrossPlaneFunction      crossplaneV1.Function
 )
 
 // KindInterface implements method that identifies the type of kubernetes workloads.
@@ -463,6 +470,51 @@ func (dep *ConfigMap) Get(dataMap string, imageRegex string, log *logrus.Logger)
 	return images, nil
 }
 
+// Get identifies images from CrossPlaneProvider.
+func (dep *CrossPlaneProvider) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+
+	images := &Image{
+		Kind:  KindCrossPlaneProvider,
+		Name:  dep.Name,
+		Image: []string{dep.Spec.Package},
+	}
+
+	return images, nil
+}
+
+// Get identifies images from CrossPlaneProvider.
+func (dep *CrossPlaneConfiguration) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+
+	images := &Image{
+		Kind:  KindCrossPlaneConfiguration,
+		Name:  dep.Name,
+		Image: []string{dep.Spec.Package},
+	}
+
+	return images, nil
+}
+
+// Get identifies images from CrossPlaneFunction.
+func (dep *CrossPlaneFunction) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+
+	images := &Image{
+		Kind:  KindCrossPlaneFunction,
+		Name:  dep.Name,
+		Image: []string{dep.Spec.Package},
+	}
+
+	return images, nil
+}
+
 // NewDeployment returns new instance of Deployments.
 func NewDeployment() ImagesInterface {
 	return &Deployments{}
@@ -528,6 +580,21 @@ func NewThanosReceiver() ImagesInterface {
 	return &ThanosReceiver{}
 }
 
+// NewCrossPlaneProvider returns new instance of CrossPlaneProvider.
+func NewCrossPlaneProvider() ImagesInterface {
+	return &CrossPlaneProvider{}
+}
+
+// NewCrossPlaneConfiguration returns new instance of CrossPlaneConfiguration.
+func NewCrossPlaneConfiguration() ImagesInterface {
+	return &CrossPlaneConfiguration{}
+}
+
+// NewCrossPlaneFunction returns new instance of CrossPlaneConfiguration.
+func NewCrossPlaneFunction() ImagesInterface {
+	return &CrossPlaneFunction{}
+}
+
 func NewConfigMap() ImagesInterface {
 	return &ConfigMap{}
 }
@@ -548,6 +615,7 @@ func SupportedKinds() []string {
 		KindCronJob, KindJob, KindReplicaSet, KindPod,
 		monitoringV1.AlertmanagersKind, monitoringV1.PrometheusesKind, monitoringV1.ThanosRulerKind,
 		KindGrafana, KindThanos, KindThanosReceiver, KindConfigMap,
+		KindCrossPlaneProvider, KindCrossPlaneConfiguration, KindCrossPlaneFunction,
 	}
 
 	return kinds

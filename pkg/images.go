@@ -354,6 +354,27 @@ func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Imag
 		}
 
 		images = append(images, grafana)
+	case k8s.KindCrossPlaneProvider:
+		crossPlaneProvider, err := k8s.NewCrossPlaneProvider().Get(kubeKindTemplate, "", image.log)
+		if err != nil {
+			return nil, err
+		}
+
+		images = append(images, crossPlaneProvider)
+	case k8s.KindCrossPlaneConfiguration:
+		crossPlaneConfiguration, err := k8s.NewCrossPlaneConfiguration().Get(kubeKindTemplate, "", image.log)
+		if err != nil {
+			return nil, err
+		}
+
+		images = append(images, crossPlaneConfiguration)
+	case k8s.KindCrossPlaneFunction:
+		crossPlaneFunction, err := k8s.NewCrossPlaneFunction().Get(kubeKindTemplate, "", image.log)
+		if err != nil {
+			return nil, err
+		}
+
+		images = append(images, crossPlaneFunction)
 	default:
 		image.log.Debugf("kind '%s' is not supported at the moment", currentKind)
 	}
