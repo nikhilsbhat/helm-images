@@ -638,6 +638,24 @@ func (cont containers) getImagesFromArgs() []string {
 	return images
 }
 
+func (cont containers) getImagesFromEnv() []string {
+	images := make([]string, 0)
+
+	for _, container := range cont.containers {
+		for _, env := range container.Env {
+			if env.ValueFrom != nil {
+				continue
+			}
+
+			if isImageVar(env.Name) {
+				images = append(images, env.Value)
+			}
+		}
+	}
+
+	return images
+}
+
 func (cont containers) getImages() []string {
 	images := make([]string, 0)
 	for _, container := range cont.containers {
@@ -715,4 +733,8 @@ func imageMatch(imageRegex, imageString string) (bool, error) {
 	}
 
 	return regex.MatchString(imageString), nil
+}
+
+func isImageVar(s string) bool {
+	return strings.HasSuffix(s, "_IMAGE") || strings.HasSuffix(s, "_IMG")
 }
