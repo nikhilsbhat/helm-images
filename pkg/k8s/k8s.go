@@ -297,7 +297,7 @@ func (dep *Prometheus) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, 
 	depContainers := containers{append(dep.Spec.Containers, dep.Spec.InitContainers...)}
 
 	imageNames = append(imageNames, depContainers.getImages()...)
-	imageNames = append(imageNames, *dep.Spec.Image)
+	imageNames = append(imageNames, *dep.Spec.Image, *dep.Spec.Thanos.Image)
 
 	images := &Image{
 		Kind:  monitoringV1.PrometheusesKind,
