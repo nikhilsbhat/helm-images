@@ -1,6 +1,8 @@
 package pkg
 
 import (
+	"io"
+	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -9,6 +11,14 @@ import (
 // SetLogger sets logger to the Images.
 func (image *Images) SetLogger(logLevel string) {
 	logger := log.New()
+
+	// If quiet mode is enabled, discard all logs
+	if image.Quiet {
+		logger.SetOutput(io.Discard)
+	} else {
+		logger.SetOutput(os.Stderr)
+	}
+
 	logger.SetLevel(GetLoglevel(logLevel))
 	logger.WithField("helm-images", true)
 	logger.SetFormatter(&log.JSONFormatter{})

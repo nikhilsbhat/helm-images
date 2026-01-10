@@ -39,6 +39,7 @@ type Images struct {
 	ValueFiles          ValueFiles `json:"value_files,omitempty"             yaml:"value_files,omitempty"`
 	LogLevel            string     `json:"log_level,omitempty"               yaml:"log_level,omitempty"`
 	OutputFormat        string     `json:"output_format,omitempty"           yaml:"output_format,omitempty"`
+	ChartsDir           string     `json:"charts_dir,omitempty"              yaml:"charts_dir,omitempty"`
 	Revision            int        `json:"revision,omitempty"                yaml:"revision,omitempty"`
 	Raw                 bool       `json:"raw,omitempty"                     yaml:"raw,omitempty"`
 	SkipTests           bool       `json:"skip_tests,omitempty"              yaml:"skip_tests,omitempty"`
@@ -48,6 +49,7 @@ type Images struct {
 	NoColor             bool       `json:"no_color,omitempty"                yaml:"no_color,omitempty"`
 	Validate            bool       `json:"validate,omitempty"                yaml:"validate,omitempty"`
 	IsDefaultNamespace  bool       `json:"is_default_namespace,omitempty"    yaml:"is_default_namespace,omitempty"`
+	Quiet               bool       `json:"quiet,omitempty"                   yaml:"quiet,omitempty"`
 	releasesToSkip      []skipReleaseInfo
 	json                bool
 	yaml                bool
@@ -85,6 +87,16 @@ func (image *Images) SetRelease(release string) {
 // SetChart sets chart passed.
 func (image *Images) SetChart(chart string) {
 	image.chart = chart
+}
+
+// SetChartsDir sets charts directory passed.
+func (image *Images) SetChartsDir(chartsDir string) {
+	image.ChartsDir = chartsDir
+}
+
+// GetChartsDir returns the charts directory set under Images.
+func (image *Images) GetChartsDir() string {
+	return image.ChartsDir
 }
 
 // SetRaw sets raw.
@@ -391,4 +403,175 @@ func GetImagesFromKind(kinds []*k8s.Image) []string {
 	}
 
 	return images
+}
+
+// GetImagesFromChartsDir fetches images from all helm charts in the specified directory.
+func (image *Images) GetImagesFromChartsDir() error {
+	charts, err := image.getChartsFromDir()
+	if err != nil {
+		return err
+	}
+
+	// For simple output format (default), collect all images in a flat list
+	if !image.json && !image.yaml && !image.table && !image.csv {
+		allImages := make([]string, 0)
+
+		for _, chart := range charts {
+			image.log.Debugf("fetching the images from chart '%s' at path '%s'", chart.name, chart.path)
+
+			images := make([]*k8s.Image, 0)
+
+			// Render the chart manifest
+			manifest, err := image.getChartManifestFromDir(chart.path, chart.name)
+			if err != nil {
+				image.log.Errorf("failed to render chart '%s': %v", chart.name, err)
+
+				continue
+			}
+
+			kubeKindTemplates := image.GetTemplates(manifest)
+			skips := image.GetResourcesToSkip()
+
+			for _, kubeKindTemplate := range kubeKindTemplates {
+				currentManifestName, err := k8s.NewName().Get(kubeKindTemplate, image.log)
+				if err != nil {
+					return err
+				}
+
+				currentKind, err := k8s.NewKind().Get(kubeKindTemplate, image.log)
+				if err != nil {
+					return err
+				}
+
+				if !funk.Contains(image.Kind, currentKind) {
+					image.log.Debugf("either helm-images plugin does not support kind '%s' "+
+						"at the moment or manifest might not have images to filter", currentKind)
+
+					continue
+				}
+
+				shouldSkip := false
+
+				for _, skip := range skips {
+					if skip.Name == strings.ToLower(currentManifestName) && skip.Kind == strings.ToLower(currentKind) {
+						image.log.Debugf("Skipping '%s' bearing name '%s' since it is set to skip.", currentKind, currentManifestName)
+
+						shouldSkip = true
+
+						break
+					}
+				}
+
+				if shouldSkip {
+					continue
+				}
+
+				image.log.Debugf("fetching images from '%s' of kind '%s'", currentKind, currentManifestName)
+
+				imagesFound, err := image.GetImage(currentKind, kubeKindTemplate)
+				if err != nil {
+					return err
+				}
+
+				images = append(images, imagesFound...)
+			}
+
+			if len(images) == 0 {
+				image.log.Infof("the chart '%s' does not have any images", chart.name)
+
+				continue
+			}
+
+			// Filter images by registry
+			images = image.FilterImagesByRegistriesNew(images)
+
+			// Extract image names
+			imageNames := GetImagesFromKind(images)
+			allImages = append(allImages, imageNames...)
+		}
+
+		// Apply unique filter if requested
+		if image.UniqueImages {
+			allImages = GetUniqEntries(allImages)
+		}
+
+		// Output as simple list
+		return image.renderer.Render(strings.Join(allImages, "\n"))
+	}
+
+	// For structured output formats (json, yaml, table, csv)
+	imagesFromAllCharts := make([]k8s.Images, 0)
+
+	for _, chart := range charts {
+		image.log.Debugf("fetching the images from chart '%s' at path '%s'", chart.name, chart.path)
+
+		images := make([]*k8s.Image, 0)
+
+		// Render the chart manifest
+		manifest, err := image.getChartManifestFromDir(chart.path, chart.name)
+		if err != nil {
+			image.log.Errorf("failed to render chart '%s': %v", chart.name, err)
+
+			continue
+		}
+
+		kubeKindTemplates := image.GetTemplates(manifest)
+		skips := image.GetResourcesToSkip()
+
+		for _, kubeKindTemplate := range kubeKindTemplates {
+			currentManifestName, err := k8s.NewName().Get(kubeKindTemplate, image.log)
+			if err != nil {
+				return err
+			}
+
+			currentKind, err := k8s.NewKind().Get(kubeKindTemplate, image.log)
+			if err != nil {
+				return err
+			}
+
+			if !funk.Contains(image.Kind, currentKind) {
+				image.log.Debugf("either helm-images plugin does not support kind '%s' "+
+					"at the moment or manifest might not have images to filter", currentKind)
+
+				continue
+			}
+
+			shouldSkip := false
+
+			for _, skip := range skips {
+				if skip.Name == strings.ToLower(currentManifestName) && skip.Kind == strings.ToLower(currentKind) {
+					image.log.Debugf("Skipping '%s' bearing name '%s' since it is set to skip.", currentKind, currentManifestName)
+
+					shouldSkip = true
+
+					break
+				}
+			}
+
+			if shouldSkip {
+				continue
+			}
+
+			image.log.Debugf("fetching images from '%s' of kind '%s'", currentKind, currentManifestName)
+
+			imagesFound, err := image.GetImage(currentKind, kubeKindTemplate)
+			if err != nil {
+				return err
+			}
+
+			images = append(images, imagesFound...)
+		}
+
+		if len(images) == 0 {
+			image.log.Infof("the chart '%s' does not have any images", chart.name)
+
+			continue
+		}
+
+		output := image.setOutput(images)
+
+		imagesFromAllCharts = append(imagesFromAllCharts, k8s.Images{ImagesFromRelease: output, NameSpace: chart.name})
+	}
+
+	return image.renderer.Render(imagesFromAllCharts)
 }
