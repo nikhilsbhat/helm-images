@@ -41,11 +41,16 @@ func getImagesCommand() *cobra.Command {
   helm images get oci://registry-1.docker.io/bitnamicharts/airflow -o yaml
   helm images get kong-2.35.0.tgz -o json
   helm template example/chart/sample | helm images get --raw -
-  helm template example/chart/sample | helm images get --raw - -o yaml`,
+  helm template example/chart/sample | helm images get --raw - -o yaml
+  helm images get --charts-dir ./charts -o yaml`,
 		Args:    validateAndSetArgs,
 		PreRunE: setCLIClient,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cmd.SilenceUsage = true
+
+			if images.ChartsDir != "" {
+				return images.GetImagesFromChartsDir()
+			}
 
 			if images.Raw {
 				stdIn := cmd.InOrStdin()
@@ -65,6 +70,8 @@ func getImagesCommand() *cobra.Command {
 	registerGetFlags(imageCommand)
 
 	imageCommand.MarkFlagsMutuallyExclusive("raw", "from-release")
+	imageCommand.MarkFlagsMutuallyExclusive("raw", "charts-dir")
+	imageCommand.MarkFlagsMutuallyExclusive("from-release", "charts-dir")
 
 	return imageCommand
 }
@@ -165,6 +172,10 @@ func validateAndSetArgs(cmd *cobra.Command, args []string) error {
 	cmd.SilenceUsage = true
 
 	if images.Raw {
+		return nil
+	}
+
+	if images.ChartsDir != "" {
 		return nil
 	}
 

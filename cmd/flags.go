@@ -52,6 +52,8 @@ func registerCommonFlags(cmd *cobra.Command) {
 		"the format to which the output should be rendered to, it should be one of yaml|json|table|csv, if nothing specified it sets to default")
 	cmd.PersistentFlags().BoolVarP(&images.NoColor, "no-color", "", false,
 		"when enabled does not color encode the output")
+	cmd.PersistentFlags().BoolVarP(&images.Quiet, "quiet", "q", false,
+		"suppress all log output, only show results")
 }
 
 // Registers all flags to command, get.
@@ -60,6 +62,8 @@ func registerGetFlags(cmd *cobra.Command) {
 		"enable the flag to fetch the images from release instead (disabled by default)")
 	cmd.PersistentFlags().BoolVarP(&images.Raw, "raw", "", false,
 		"when enabled, expects raw kubernetes manifests rather helm release or chart")
+	cmd.PersistentFlags().StringVarP(&images.ChartsDir, "charts-dir", "", "",
+		"directory path containing multiple helm charts to process")
 }
 
 func registerGetAllFlags(cmd *cobra.Command) {
