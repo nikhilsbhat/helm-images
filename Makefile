@@ -53,6 +53,9 @@ local/deploy: local/build ## Deploys a locally built helm plugins
 publish: local/check ## Builds and publishes the app
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --clean
 
+plugin/package: ## Builds a Helm 4 plugin package and provenance file.
+	HELM_PLUGIN_KEY_NAME=${HELM_PLUGIN_KEY_NAME} HELM_PLUGIN_KEYRING=${HELM_PLUGIN_KEYRING} ${APP_DIR}/scripts/package-helm4-plugin.sh
+
 mock/publish: local/check ## Builds and mocks app release
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --skip=publish --clean --snapshot
 

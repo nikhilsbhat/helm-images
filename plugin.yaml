@@ -1,9 +1,21 @@
 name: "images"
 version: "0.1.7"
-usage: "Lists all/selected docker images that are part of deployment"
-description: "Lists all/selected docker images that would be part of deployment of selected chart"
-useTunnel: true
-command: "$HELM_PLUGIN_DIR/bin/helm-images"
-hooks:
-  install: "$HELM_PLUGIN_DIR/install-binary.sh"
-  update: "$HELM_PLUGIN_DIR/install-binary.sh"
+apiVersion: v1
+type: cli/v1
+runtime: subprocess
+sourceURL: https://github.com/nikhilsbhat/helm-images
+config:
+  usage: "Lists all/selected docker images that are part of deployment"
+  shortHelp: "Lists all/selected docker images that are part of deployment"
+  longHelp: "Lists all/selected docker images that would be part of deployment of selected chart"
+runtimeConfig:
+  platformCommand:
+    - command: "$HELM_PLUGIN_DIR/bin/helm-images"
+      args: []
+  platformHooks:
+    install:
+      - command: "$HELM_PLUGIN_DIR/install-binary.sh"
+        args: []
+    update:
+      - command: "$HELM_PLUGIN_DIR/install-binary.sh"
+        args: []

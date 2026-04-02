@@ -38,9 +38,35 @@ quay.io/prometheus/alertmanager:v0.21.0
 ## Installation
 
 ```shell
-helm plugin install https://github.com/nikhilsbhat/helm-images
+helm plugin install https://github.com/nikhilsbhat/helm-images/releases/download/v<version>/images-<version>.tgz --verify
 ```
+
+Helm 4 verifies remotely installed plugins by default. Installing directly from the git repository is not verifiable, so published releases must include both the plugin package (`.tgz`) and the matching provenance file (`.tgz.prov`).
+
+To verify the signature during installation, import the public key used to sign the release package into your GPG keyring before running the command above.
+
+For local development, install from a checked out directory instead:
+
+```shell
+helm plugin install .
+```
+
 Use the executable just like any other go-cli application.
+
+## Releasing For Helm 4
+
+The release now has two artifact types:
+
+- platform-specific binary archives produced by Goreleaser and downloaded by `install-binary.sh`
+- a Helm plugin package and provenance file produced by Helm for verified plugin installation
+
+Build the Helm plugin package with:
+
+```shell
+HELM_PLUGIN_KEY_NAME="<gpg-key-id-or-uid>" HELM_PLUGIN_KEYRING="${HOME}/.gnupg/pubring.gpg" make plugin/package
+```
+
+This generates `dist/images-<version>.tgz` and `dist/images-<version>.tgz.prov`. Publish both files alongside the existing release archives so `helm plugin install ... --verify` works on Helm 4.
 
 ## Usage
 
