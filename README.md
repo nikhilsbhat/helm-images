@@ -37,10 +37,24 @@ quay.io/prometheus/alertmanager:v0.21.0
 ```
 ## Installation
 
+**For Helm > 2.3.x :**
+
 ```shell
 helm plugin install https://github.com/nikhilsbhat/helm-images
 ```
-Use the executable just like any other go-cli application.
+
+**For Helm 4 :**
+
+Helm 4 enforces plugin verification by default. Because this plugin does not yet include provenance artifacts, you must disable verification using the --verify=false flag
+
+```shell
+helm plugin install https://github.com/nikhilsbhat/helm-images --verify=false
+```
+
+For more information about plugin verification in Helm 4, see:
+- [Helm 4 Overview](https://helm.sh/docs/overview)
+- [HIP-0026: Plugin Provenance](https://github.com/helm/community/blob/main/hips/hip-0026.md)
+- [Helm Provenance Documentation](https://helm.sh/docs/topics/provenance/)
 
 ## Usage
 
