@@ -15,6 +15,7 @@ flags:
 commands:
   - name: get
     flags:
+      - charts-dir
       - configmap-image-regex
       - from-release
       - image-regex
@@ -25,6 +26,8 @@ commands:
       - no-color
       - o
       - output
+      - q
+      - quiet
       - raw
       - r
       - registry
