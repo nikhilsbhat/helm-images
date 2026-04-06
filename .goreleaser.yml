@@ -28,6 +28,9 @@ builds:
       - '386'
       - arm
       - arm64
+    ignore:
+      - goos: windows
+        goarch: arm
     binary: '{{ .ProjectName }}'
 
 archives:
