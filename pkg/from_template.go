@@ -1,19 +1,21 @@
 package pkg
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
-	imageErr "github.com/nikhilsbhat/helm-images/pkg/errors"
+	imageError "github.com/nikhilsbhat/helm-images/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
 // getChartFromTemplate should get the manifests by rendering the helm template.
-func (image *Images) getChartFromTemplate() ([]byte, error) {
+func (image *Images) getChartFromTemplate(ctx context.Context) ([]byte, error) {
 	flags := make([]string, 0)
 
 	for _, value := range image.Values {
@@ -61,12 +63,12 @@ func (image *Images) getChartFromTemplate() ([]byte, error) {
 
 	image.log.Debugf("rendering helm chart with following commands/flags '%s'", strings.Join(args, ", "))
 
-	helmBin := os.Getenv("HELM_BIN")
-	if helmBin == "" {
-		return nil, &imageErr.ImageError{Message: "environment variable 'HELM_BIN' is not set"}
+	helmBin, err := getHelmBinary()
+	if err != nil {
+		return nil, err
 	}
 
-	cmd := exec.Command(helmBin, args...)
+	cmd := exec.CommandContext(ctx, helmBin, args...)
 	image.log.Debugf("running following command to render the helm template: %s", cmd.String())
 	output, err := cmd.Output()
 
@@ -87,4 +89,18 @@ func (image *Images) getChartFromTemplate() ([]byte, error) {
 	}
 
 	return output, nil
+}
+
+func getHelmBinary() (string, error) {
+	helmBin := os.Getenv("HELM_BIN")
+	if helmBin == "" {
+		return "", &imageError.ImageError{Message: "environment variable 'HELM_BIN' is not set"}
+	}
+
+	// Only allow helm binary name or a path ending in helm
+	if filepath.Base(helmBin) != "helm" {
+		return "", &imageError.ImageError{Message: "invalid HELM_BIN: must point to helm binary"}
+	}
+
+	return helmBin, nil
 }

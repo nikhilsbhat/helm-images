@@ -6,10 +6,11 @@ import (
 	"github.com/nikhilsbhat/helm-images/pkg/k8s"
 )
 
-func (image *Images) setOutput(images []*k8s.Image) interface{} {
+func (image *Images) setOutput(images []*k8s.Image) any {
 	images = image.FilterImagesByRegistriesNew(images)
 
-	var output interface{}
+	var output any
+
 	output = images
 
 	if image.table {

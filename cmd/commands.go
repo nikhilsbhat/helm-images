@@ -49,11 +49,12 @@ func getImagesCommand() *cobra.Command {
 			cmd.SilenceUsage = true
 
 			if images.ChartsDir != "" {
-				return images.GetImagesFromChartsDir()
+				return images.GetImagesFromChartsDir(cmd.Context())
 			}
 
 			if images.Raw {
 				stdIn := cmd.InOrStdin()
+
 				imagesRaw, err := io.ReadAll(stdIn)
 				if err != nil {
 					return err
@@ -62,7 +63,7 @@ func getImagesCommand() *cobra.Command {
 				images.SetRaw(imagesRaw)
 			}
 
-			return images.GetImages()
+			return images.GetImages(cmd.Context())
 		},
 	}
 
@@ -158,7 +159,7 @@ func setCLIClient(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-//nolint:goerr113
+//nolint:goerr113,err113
 func validateAndSetArgs(cmd *cobra.Command, args []string) error {
 	logger := logrus.New()
 	logger.SetLevel(pkg.GetLoglevel(images.LogLevel))

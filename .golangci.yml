@@ -1,70 +1,77 @@
----
-linters:
-  disable-all: false
-  enable-all: true
-  disable:
-    - gochecknoglobals
-    - tagliatelle
-    - exhaustivestruct
-    - exhaustruct
-    - forbidigo
-    - paralleltest
-    - cyclop
-    - ireturn
-    - wrapcheck
-    - forcetypeassert
-    - maligned
-    - depguard
-    - dupword
-    - tagalign
-    - perfsprint
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gomnd
-
-    # https://github.com/go-critic/go-critic/issues/926
-    - linters:
-        - gocritic
-      text: "unnecessaryDefer:"
-
-linters-settings:
-  gocyclo:
-    min-complexity: 40
-
-  funlen:
-    lines: 160
-    statements: 60
-
-  cyclop:
-    max-complexity: 30
-
-  lll:
-    line-length: 165
-
-  dupl:
-    threshold: 450
-
+version: "2"
 run:
   concurrency: 10
-  timeout: 10m
   issues-exit-code: 1
-  tests: true
-  skip-dirs:
-    - scripts/
-    - vendor/
-    - docs/
-  skip-files:
-    - Makefile
-    - README.md
-    - Dockerfile
+  tests: false
+  modules-download-mode: vendor
 
+output:
+  sort-order:
+    - linter
+    - severity
+    - file
+linters:
+  default: all
+  disable:
+    - cyclop
+    - depguard
+    - exhaustruct
+    - forbidigo
+    - forcetypeassert
+    - gochecknoglobals
+    - goconst
+    - interfacebloat
+    - ireturn
+    - nolintlint
+    - paralleltest
+    - perfsprint
+    - tagalign
+    - tagliatelle
+    - wrapcheck
+    - noinlineerr
+    - prealloc
+  settings:
+    dupl:
+      threshold: 450
+    funlen:
+      lines: 160
+      statements: 50
+    gocognit:
+      min-complexity: 60
+    lll:
+      line-length: 145
+    nestif:
+      min-complexity: 20
+    gocyclo:
+      max-complexity: 40
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - mnd
+        path: _test\.go
+      - linters:
+          - gocritic
+        text: 'unnecessaryDefer:'
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 severity:
-  default-severity: error
-
-service:
-  golangci-lint-version: 1.27.x
-  prepare:
-    - make local.check
+  default: error
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

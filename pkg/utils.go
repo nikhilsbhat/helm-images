@@ -3,7 +3,10 @@ package pkg
 import (
 	"fmt"
 	"os"
+	"slices"
 	"strings"
+
+	"github.com/nikhilsbhat/helm-images/pkg/errors"
 )
 
 type ValueFiles []string
@@ -13,22 +16,21 @@ func (v *ValueFiles) String() string {
 }
 
 func (v *ValueFiles) Valid() error {
-	errStr := ""
+	var errBuilder strings.Builder
 
 	for _, valuesFile := range *v {
 		if strings.TrimSpace(valuesFile) != "-" {
 			if _, err := os.Stat(valuesFile); os.IsNotExist(err) {
-				errStr += err.Error()
+				errBuilder.WriteString(err.Error())
 			}
 		}
 	}
 
-	if len(errStr) == 0 {
+	if errBuilder.Len() == 0 {
 		return nil
 	}
 
-	//nolint:goerr113
-	return fmt.Errorf("%s", errStr)
+	return &errors.ImageError{Message: errBuilder.String()}
 }
 
 func (v *ValueFiles) Type() string {
@@ -36,7 +38,7 @@ func (v *ValueFiles) Type() string {
 }
 
 func (v *ValueFiles) Set(value string) error {
-	for _, filePath := range strings.Split(value, ",") {
+	for filePath := range strings.SplitSeq(value, ",") {
 		*v = append(*v, filePath)
 	}
 
@@ -59,11 +61,5 @@ func GetUniqEntries(slice []string) []string {
 }
 
 func Contains(slice []string, image string) bool {
-	for _, slc := range slice {
-		if slc == image {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(slice, image)
 }

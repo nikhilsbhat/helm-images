@@ -3,6 +3,7 @@ package k8s
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"regexp"
 	"strings"
 
@@ -52,9 +53,9 @@ type (
 	CronJob      batchV1.CronJob
 	Job          batchV1.Job
 	Pod          coreV1.Pod
-	Kind         map[string]interface{}
-	Name         map[string]interface{}
-	Resource     map[string]interface{}
+	Kind         map[string]any
+	Name         map[string]any
+	Resource     map[string]any
 	containers   struct {
 		containers []coreV1.Container
 	}
@@ -88,8 +89,8 @@ type Image struct {
 }
 
 type Images struct {
-	ImagesFromRelease interface{} `json:"images_from_release,omitempty" yaml:"images_from_release,omitempty"`
-	NameSpace         string      `json:"name_space,omitempty"          yaml:"name_space,omitempty"`
+	ImagesFromRelease any    `json:"images_from_release,omitempty" yaml:"images_from_release,omitempty"`
+	NameSpace         string `json:"name_space,omitempty"          yaml:"name_space,omitempty"`
 }
 
 func (name *Name) Get(dataMap string, log *logrus.Logger) (string, error) {
@@ -99,7 +100,7 @@ func (name *Name) Get(dataMap string, log *logrus.Logger) (string, error) {
 
 	kindYaml := *name
 
-	metadata, metadataExists := kindYaml["metadata"].(map[string]interface{})
+	metadata, metadataExists := kindYaml["metadata"].(map[string]any)
 	if !metadataExists {
 		log.Warn("failed to get 'metadata' from the manifest")
 
@@ -420,7 +421,7 @@ func (dep *ConfigMap) Get(dataMap string, imageRegex string, log *logrus.Logger)
 	log.Debugf("using regex '%s' for identifying images from configmap", imageRegex)
 
 	for key, value := range dep.Data {
-		var valueMap interface{}
+		var valueMap any
 
 		object := content.Object(value)
 
@@ -665,16 +666,16 @@ func GetImage(data map[string]any, key, regex string, log *logrus.Logger) (value
 		}
 
 		switch dataValueType := dataValue.(type) {
-		case []interface{}:
+		case []any:
 			for _, item := range dataValueType {
-				if nestedMap, ok := item.(map[string]interface{}); ok {
+				if nestedMap, ok := item.(map[string]any); ok {
 					if nestedValues, found := GetImage(nestedMap, key, regex, log); found {
 						values = append(values, nestedValues...)
 						valuesFound = true
 					}
 				}
 			}
-		case map[string]interface{}:
+		case map[string]any:
 			if nestedValues, found := GetImage(dataValueType, key, regex, log); found {
 				values = append(values, nestedValues...)
 				valuesFound = true
@@ -685,22 +686,20 @@ func GetImage(data map[string]any, key, regex string, log *logrus.Logger) (value
 	return values, valuesFound
 }
 
-func GetData(value interface{}) map[string]interface{} {
-	valueMap := make(map[string]interface{})
+func GetData(value any) map[string]any {
+	valueMap := make(map[string]any)
 
 	switch dataValueType := value.(type) {
-	case []map[string]interface{}:
+	case []map[string]any:
 		if len(dataValueType) > 0 {
 			return dataValueType[0]
 		}
-	case map[string]interface{}:
+	case map[string]any:
 		return dataValueType
-	case []interface{}:
+	case []any:
 		for _, item := range dataValueType {
-			if nestedMap, ok := item.(map[string]interface{}); ok {
-				for nestedKey, nestedValue := range nestedMap {
-					valueMap[nestedKey] = nestedValue
-				}
+			if nestedMap, ok := item.(map[string]any); ok {
+				maps.Copy(valueMap, nestedMap)
 			}
 		}
 	}

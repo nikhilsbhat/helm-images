@@ -44,7 +44,7 @@ func (image *Images) getChartsFromReleases() ([]*release.Release, error) {
 	var namespace string
 
 	if image.isAll() {
-		image.log.Debug("no namespace specified, fetching all helm releases from the the cluster")
+		image.log.Debug("no namespace specified, fetching all helm releases from the cluster")
 	} else {
 		image.log.Debugf("retrieving charts from the namespace '%s'", image.namespace)
 		namespace = image.namespace

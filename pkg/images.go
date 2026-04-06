@@ -1,10 +1,12 @@
 package pkg
 
 import (
+	"context"
 	"errors"
 	"os"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/nikhilsbhat/common/renderer"
@@ -20,7 +22,8 @@ const (
 	// Splitting templates eases the task of  identifying Kubernetes objects.
 	ImageRegex = `---\n# Source:\s.*.`
 	// ConfigMapImageRegex is the default regex, that is used for identifying images from ConfigMap.
-	ConfigMapImageRegex = `\bimage\b`
+	ConfigMapImageRegex   = `\bimage\b`
+	fetchingImagesMessage = "fetching the images from chart '%s' at path '%s'"
 )
 
 // Images represents GetImages.
@@ -127,10 +130,10 @@ func (image *Images) GetChart() string {
 
 // GetImages fetches all available images from the specified chart.
 // Also filters identified images, to get just unique ones.
-func (image *Images) GetImages() error {
+func (image *Images) GetImages(ctx context.Context) error {
 	image.log.Debugf("got all required values to fetch the images from chart/release '%s' proceeding furter to fetch the same", image.release)
 
-	chart, err := image.getChartManifests()
+	chart, err := image.getChartManifests(ctx)
 	if err != nil {
 		return err
 	}
@@ -201,24 +204,6 @@ func (image *Images) GetImages() error {
 	return image.renderer.Render(output)
 }
 
-func (image *Images) getChartManifests() ([]byte, error) {
-	if image.Raw {
-		image.log.Debug("reading the manifest from stdin")
-
-		return image.raw, nil
-	}
-
-	if image.FromRelease {
-		image.log.Debugf("from-release is selected, hence fetching manifests for '%s' from helm release", image.release)
-
-		return image.getChartFromRelease()
-	}
-
-	image.log.Debugf("fetching manifests for '%s' by rendering helm template locally", image.release)
-
-	return image.getChartFromTemplate()
-}
-
 // GetTemplates returns the split manifests fetched from one big template string fetched from `helm template`.
 func (image *Images) GetTemplates(template []byte) []string {
 	image.log.Debugf("splitting helm manifests with regex pattern: '%s'", image.ImageRegex)
@@ -255,143 +240,69 @@ func (image *Images) GetResourcesToSkip() []Skip {
 //
 //nolint:gocognit,funlen
 func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Image, error) {
-	images := make([]*k8s.Image, 0)
+	var (
+		img *k8s.Image
+		err error
+	)
 
 	switch currentKind {
 	case k8s.KindDeployment:
-		deployImages, err := k8s.NewDeployment().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, deployImages)
+		img, err = k8s.NewDeployment().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindStatefulSet:
-		stsImages, err := k8s.NewStatefulSet().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, stsImages)
+		img, err = k8s.NewStatefulSet().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindDaemonSet:
-		daemonImages, err := k8s.NewDaemonSet().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, daemonImages)
+		img, err = k8s.NewDaemonSet().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindReplicaSet:
-		replicaSets, err := k8s.NewReplicaSets().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, replicaSets)
+		img, err = k8s.NewReplicaSets().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindPod:
-		pods, err := k8s.NewPod().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, pods)
+		img, err = k8s.NewPod().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindConfigMap:
-		configMap, err := k8s.NewConfigMap().Get(kubeKindTemplate, image.ConfigMapImageRegex, image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		if !reflect.DeepEqual(configMap, &k8s.Image{}) {
-			images = append(images, configMap)
-		}
+		img, err = k8s.NewConfigMap().Get(kubeKindTemplate, image.ConfigMapImageRegex, image.log)
 	case k8s.KindCronJob:
-		cronJob, err := k8s.NewCronjob().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, cronJob)
+		img, err = k8s.NewCronjob().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindJob:
-		job, err := k8s.NewJob().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, job)
+		img, err = k8s.NewJob().Get(kubeKindTemplate, "", image.log)
 	case monitoringV1.AlertmanagersKind:
-		alertManager, err := k8s.NewAlertManager().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, alertManager)
+		img, err = k8s.NewAlertManager().Get(kubeKindTemplate, "", image.log)
 	case monitoringV1.PrometheusesKind:
-		prometheus, err := k8s.NewPrometheus().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, prometheus)
+		img, err = k8s.NewPrometheus().Get(kubeKindTemplate, "", image.log)
 	case monitoringV1.ThanosRulerKind:
-		thanosRuler, err := k8s.NewThanosRuler().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, thanosRuler)
+		img, err = k8s.NewThanosRuler().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindThanos:
-		thanos, err := k8s.NewThanos().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, thanos)
+		img, err = k8s.NewThanos().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindThanosReceiver:
-		thanosReceiver, err := k8s.NewThanosReceiver().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, thanosReceiver)
+		img, err = k8s.NewThanosReceiver().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindGrafana:
-		grafana, err := k8s.NewGrafana().Get(kubeKindTemplate, "", image.log)
-
-		grafanaErr := &imgErrors.GrafanaAPIVersionSupportError{}
-		if err != nil {
-			if errors.As(err, &grafanaErr) {
-				image.log.Errorf("fetching images from Kind Grafana errored with %s", err.Error())
-
-				return nil, nil
-			}
-
-			return nil, err
-		}
-
-		images = append(images, grafana)
+		img, err = k8s.NewGrafana().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindCrossPlaneProvider:
-		crossPlaneProvider, err := k8s.NewCrossPlaneProvider().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, crossPlaneProvider)
+		img, err = k8s.NewCrossPlaneProvider().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindCrossPlaneConfiguration:
-		crossPlaneConfiguration, err := k8s.NewCrossPlaneConfiguration().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, crossPlaneConfiguration)
+		img, err = k8s.NewCrossPlaneConfiguration().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindCrossPlaneFunction:
-		crossPlaneFunction, err := k8s.NewCrossPlaneFunction().Get(kubeKindTemplate, "", image.log)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, crossPlaneFunction)
+		img, err = k8s.NewCrossPlaneFunction().Get(kubeKindTemplate, "", image.log)
 	default:
 		image.log.Debugf("kind '%s' is not supported at the moment", currentKind)
+
+		return nil, nil
 	}
 
-	return images, nil
+	if err != nil {
+		var grafanaErr *imgErrors.GrafanaAPIVersionSupportError
+
+		if currentKind == k8s.KindGrafana && errors.As(err, &grafanaErr) {
+			image.log.Errorf("fetching images from Kind Grafana errored with %s", err.Error())
+
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	if currentKind == k8s.KindConfigMap && reflect.DeepEqual(img, &k8s.Image{}) {
+		return nil, nil
+	}
+
+	return []*k8s.Image{img}, nil
 }
 
 // GetImagesFromKind returns list of images from array of k8s.Image.
@@ -406,160 +317,75 @@ func GetImagesFromKind(kinds []*k8s.Image) []string {
 }
 
 // GetImagesFromChartsDir fetches images from all helm charts in the specified directory.
-func (image *Images) GetImagesFromChartsDir() error {
+func (image *Images) GetImagesFromChartsDir(ctx context.Context) error {
 	charts, err := image.getChartsFromDir()
 	if err != nil {
 		return err
 	}
 
-	// For simple output format (default), collect all images in a flat list
-	if !image.json && !image.yaml && !image.table && !image.csv {
-		allImages := make([]string, 0)
-
-		for _, chart := range charts {
-			image.log.Debugf("fetching the images from chart '%s' at path '%s'", chart.name, chart.path)
-
-			images := make([]*k8s.Image, 0)
-
-			// Render the chart manifest
-			manifest, err := image.getChartManifestFromDir(chart.path, chart.name)
-			if err != nil {
-				image.log.Errorf("failed to render chart '%s': %v", chart.name, err)
-
-				continue
-			}
-
-			kubeKindTemplates := image.GetTemplates(manifest)
-			skips := image.GetResourcesToSkip()
-
-			for _, kubeKindTemplate := range kubeKindTemplates {
-				currentManifestName, err := k8s.NewName().Get(kubeKindTemplate, image.log)
-				if err != nil {
-					return err
-				}
-
-				currentKind, err := k8s.NewKind().Get(kubeKindTemplate, image.log)
-				if err != nil {
-					return err
-				}
-
-				if !funk.Contains(image.Kind, currentKind) {
-					image.log.Debugf("either helm-images plugin does not support kind '%s' "+
-						"at the moment or manifest might not have images to filter", currentKind)
-
-					continue
-				}
-
-				shouldSkip := false
-
-				for _, skip := range skips {
-					if skip.Name == strings.ToLower(currentManifestName) && skip.Kind == strings.ToLower(currentKind) {
-						image.log.Debugf("Skipping '%s' bearing name '%s' since it is set to skip.", currentKind, currentManifestName)
-
-						shouldSkip = true
-
-						break
-					}
-				}
-
-				if shouldSkip {
-					continue
-				}
-
-				image.log.Debugf("fetching images from '%s' of kind '%s'", currentKind, currentManifestName)
-
-				imagesFound, err := image.GetImage(currentKind, kubeKindTemplate)
-				if err != nil {
-					return err
-				}
-
-				images = append(images, imagesFound...)
-			}
-
-			if len(images) == 0 {
-				image.log.Infof("the chart '%s' does not have any images", chart.name)
-
-				continue
-			}
-
-			// Filter images by registry
-			images = image.FilterImagesByRegistriesNew(images)
-
-			// Extract image names
-			imageNames := GetImagesFromKind(images)
-			allImages = append(allImages, imageNames...)
-		}
-
-		// Apply unique filter if requested
-		if image.UniqueImages {
-			allImages = GetUniqEntries(allImages)
-		}
-
-		// Output as simple list
-		return image.renderer.Render(strings.Join(allImages, "\n"))
+	if image.isSimpleOutput() {
+		return image.renderSimpleChartOutput(ctx, charts)
 	}
 
-	// For structured output formats (json, yaml, table, csv)
-	imagesFromAllCharts := make([]k8s.Images, 0)
+	return image.renderStructuredChartOutput(ctx, charts)
+}
+
+func (image *Images) getChartManifests(ctx context.Context) ([]byte, error) {
+	if image.Raw {
+		image.log.Debug("reading the manifest from stdin")
+
+		return image.raw, nil
+	}
+
+	if image.FromRelease {
+		image.log.Debugf("from-release is selected, hence fetching manifests for '%s' from helm release", image.release)
+
+		return image.getChartFromRelease()
+	}
+
+	image.log.Debugf("fetching manifests for '%s' by rendering helm template locally", image.release)
+
+	return image.getChartFromTemplate(ctx)
+}
+
+func (image *Images) isSimpleOutput() bool {
+	return !image.json && !image.yaml && !image.table && !image.csv
+}
+
+func (image *Images) renderSimpleChartOutput(ctx context.Context, charts []chartInfo) error {
+	allImages := make([]string, 0)
 
 	for _, chart := range charts {
-		image.log.Debugf("fetching the images from chart '%s' at path '%s'", chart.name, chart.path)
-
-		images := make([]*k8s.Image, 0)
-
-		// Render the chart manifest
-		manifest, err := image.getChartManifestFromDir(chart.path, chart.name)
+		images, err := image.collectImagesFromChart(ctx, chart)
 		if err != nil {
-			image.log.Errorf("failed to render chart '%s': %v", chart.name, err)
+			return err
+		}
+
+		if len(images) == 0 {
+			image.log.Infof("the chart '%s' does not have any images", chart.name)
 
 			continue
 		}
 
-		kubeKindTemplates := image.GetTemplates(manifest)
-		skips := image.GetResourcesToSkip()
+		images = image.FilterImagesByRegistriesNew(images)
+		imageNames := GetImagesFromKind(images)
+		allImages = append(allImages, imageNames...)
+	}
 
-		for _, kubeKindTemplate := range kubeKindTemplates {
-			currentManifestName, err := k8s.NewName().Get(kubeKindTemplate, image.log)
-			if err != nil {
-				return err
-			}
+	if image.UniqueImages {
+		allImages = GetUniqEntries(allImages)
+	}
 
-			currentKind, err := k8s.NewKind().Get(kubeKindTemplate, image.log)
-			if err != nil {
-				return err
-			}
+	return image.renderer.Render(strings.Join(allImages, "\n"))
+}
 
-			if !funk.Contains(image.Kind, currentKind) {
-				image.log.Debugf("either helm-images plugin does not support kind '%s' "+
-					"at the moment or manifest might not have images to filter", currentKind)
+func (image *Images) renderStructuredChartOutput(ctx context.Context, charts []chartInfo) error {
+	imagesFromAllCharts := make([]k8s.Images, 0)
 
-				continue
-			}
-
-			shouldSkip := false
-
-			for _, skip := range skips {
-				if skip.Name == strings.ToLower(currentManifestName) && skip.Kind == strings.ToLower(currentKind) {
-					image.log.Debugf("Skipping '%s' bearing name '%s' since it is set to skip.", currentKind, currentManifestName)
-
-					shouldSkip = true
-
-					break
-				}
-			}
-
-			if shouldSkip {
-				continue
-			}
-
-			image.log.Debugf("fetching images from '%s' of kind '%s'", currentKind, currentManifestName)
-
-			imagesFound, err := image.GetImage(currentKind, kubeKindTemplate)
-			if err != nil {
-				return err
-			}
-
-			images = append(images, imagesFound...)
+	for _, chart := range charts {
+		images, err := image.collectImagesFromChart(ctx, chart)
+		if err != nil {
+			return err
 		}
 
 		if len(images) == 0 {
@@ -570,8 +396,84 @@ func (image *Images) GetImagesFromChartsDir() error {
 
 		output := image.setOutput(images)
 
-		imagesFromAllCharts = append(imagesFromAllCharts, k8s.Images{ImagesFromRelease: output, NameSpace: chart.name})
+		imagesFromAllCharts = append(imagesFromAllCharts, k8s.Images{
+			ImagesFromRelease: output,
+			NameSpace:         chart.name,
+		})
 	}
 
 	return image.renderer.Render(imagesFromAllCharts)
+}
+
+func (image *Images) collectImagesFromChart(ctx context.Context, chart chartInfo) ([]*k8s.Image, error) {
+	image.log.Debugf(fetchingImagesMessage, chart.name, chart.path)
+
+	manifest, err := image.getChartManifestFromDir(ctx, chart.path, chart.name)
+	if err != nil {
+		image.log.Errorf("failed to render chart '%s': %v", chart.name, err)
+
+		return nil, nil
+	}
+
+	kubeKindTemplates := image.GetTemplates(manifest)
+	skips := image.GetResourcesToSkip()
+	images := make([]*k8s.Image, 0)
+
+	for _, kubeKindTemplate := range kubeKindTemplates {
+		currentManifestName, currentKind, err := image.getManifestMetadata(kubeKindTemplate)
+		if err != nil {
+			return nil, err
+		}
+
+		if !slices.Contains(image.Kind, currentKind) {
+			image.log.Debugf("either helm-images plugin does not support kind '%s' "+
+				"at the moment or manifest might not have images to filter", currentKind)
+
+			continue
+		}
+
+		if image.shouldSkipResource(skips, currentManifestName, currentKind) {
+			image.log.Debugf("Skipping '%s' bearing name '%s' since it is set to skip.", currentKind, currentManifestName)
+
+			continue
+		}
+
+		image.log.Debugf("fetching images from '%s' of kind '%s'", currentKind, currentManifestName)
+
+		imagesFound, err := image.GetImage(currentKind, kubeKindTemplate)
+		if err != nil {
+			return nil, err
+		}
+
+		images = append(images, imagesFound...)
+	}
+
+	return images, nil
+}
+
+func (image *Images) getManifestMetadata(kubeKindTemplate string) (string, string, error) {
+	currentManifestName, err := k8s.NewName().Get(kubeKindTemplate, image.log)
+	if err != nil {
+		return "", "", err
+	}
+
+	currentKind, err := k8s.NewKind().Get(kubeKindTemplate, image.log)
+	if err != nil {
+		return "", "", err
+	}
+
+	return currentManifestName, currentKind, nil
+}
+
+func (image *Images) shouldSkipResource(skips []Skip, manifestName, kind string) bool {
+	manifestName = strings.ToLower(manifestName)
+	kind = strings.ToLower(kind)
+
+	for _, skip := range skips {
+		if skip.Name == manifestName && skip.Kind == kind {
+			return true
+		}
+	}
+
+	return false
 }

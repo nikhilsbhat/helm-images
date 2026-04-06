@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -69,7 +70,7 @@ func (image *Images) getChartsFromDir() ([]chartInfo, error) {
 }
 
 // getChartManifestFromDir renders a single chart from the charts directory.
-func (image *Images) getChartManifestFromDir(chartPath, chartName string) ([]byte, error) {
+func (image *Images) getChartManifestFromDir(ctx context.Context, chartPath, chartName string) ([]byte, error) {
 	image.log.Debugf("rendering helm chart from path '%s'", chartPath)
 
 	// Temporarily set the chart path and release name
@@ -77,11 +78,12 @@ func (image *Images) getChartManifestFromDir(chartPath, chartName string) ([]byt
 	originalRelease := image.release
 	image.chart = chartPath
 	image.release = chartName
+
 	defer func() {
 		image.chart = originalChart
 		image.release = originalRelease
 	}()
 
 	// Use existing template rendering logic
-	return image.getChartFromTemplate()
+	return image.getChartFromTemplate(ctx)
 }
