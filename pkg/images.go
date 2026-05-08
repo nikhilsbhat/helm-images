@@ -42,6 +42,7 @@ type Images struct {
 	ValueFiles          ValueFiles `json:"value_files,omitempty"             yaml:"value_files,omitempty"`
 	LogLevel            string     `json:"log_level,omitempty"               yaml:"log_level,omitempty"`
 	OutputFormat        string     `json:"output_format,omitempty"           yaml:"output_format,omitempty"`
+	Platform            string     `json:"platform,omitempty"                yaml:"platform,omitempty"`
 	ChartsDir           string     `json:"charts_dir,omitempty"              yaml:"charts_dir,omitempty"`
 	Revision            int        `json:"revision,omitempty"                yaml:"revision,omitempty"`
 	Raw                 bool       `json:"raw,omitempty"                     yaml:"raw,omitempty"`
@@ -374,6 +375,10 @@ func (image *Images) renderSimpleChartOutput(ctx context.Context, charts []chart
 
 	if image.UniqueImages {
 		allImages = GetUniqEntries(allImages)
+	}
+
+	if image.Platform != "" {
+		allImages = image.pullCommands(allImages)
 	}
 
 	return image.renderer.Render(strings.Join(allImages, "\n"))

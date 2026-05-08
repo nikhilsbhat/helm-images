@@ -90,9 +90,10 @@ type ImagesInterface interface {
 
 // Image holds information of images retrieved.
 type Image struct {
-	Kind  string   `json:"kind,omitempty"  yaml:"kind,omitempty"`
-	Name  string   `json:"name,omitempty"  yaml:"name,omitempty"`
-	Image []string `json:"image,omitempty" yaml:"image,omitempty"`
+	Kind     string   `json:"kind,omitempty"     yaml:"kind,omitempty"`
+	Name     string   `json:"name,omitempty"     yaml:"name,omitempty"`
+	Platform string   `json:"platform,omitempty" yaml:"platform,omitempty"`
+	Image    []string `json:"image,omitempty"    yaml:"image,omitempty"`
 }
 
 type Images struct {

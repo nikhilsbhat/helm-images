@@ -40,9 +40,12 @@ func getImagesCommand() *cobra.Command {
   helm images get prometheus-standalone --from-release --registry quay.io -o yaml
   helm images get oci://registry-1.docker.io/bitnamicharts/airflow -o yaml
   helm images get kong-2.35.0.tgz -o json
+  helm images get prometheus-standalone path/to/chart/prometheus-standalone --platform linux/arm64
   helm template example/chart/sample | helm images get --raw -
+  helm template example/chart/sample | helm images get --raw - --platform linux/arm64
   helm template example/chart/sample | helm images get --raw - -o yaml
-  helm images get --charts-dir ./charts -o yaml`,
+  helm images get --charts-dir ./charts -o yaml
+  helm images get --charts-dir ./charts --platform linux/arm64`,
 		Args:    validateAndSetArgs,
 		PreRunE: setCLIClient,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -85,7 +88,8 @@ func getAllImagesCommand() *cobra.Command {
 		Example: `  helm images all -o yaml
   helm images all -n monitoring -o yaml
   helm images all -n monitoring -o yaml --unique
-  helm images all --skip-release traefik=kube-system --registry quay.io -o json`,
+  helm images all --skip-release traefik=kube-system --registry quay.io -o json
+  helm images all --platform linux/arm64 --unique`,
 		Args:    cobra.NoArgs,
 		PreRunE: setCLIClient,
 		RunE: func(cmd *cobra.Command, _ []string) error {

@@ -107,6 +107,12 @@ Examples:
   helm images get prometheus-standalone --from-release --registry quay.io -o yaml
   helm images get oci://registry-1.docker.io/bitnamicharts/airflow -o yaml
   helm images get kong-2.35.0.tgz -o json
+  helm images get prometheus-standalone path/to/chart/prometheus-standalone --platform linux/arm64
+  helm template example/chart/sample | helm images get --raw -
+  helm template example/chart/sample | helm images get --raw - --platform linux/arm64
+  helm template example/chart/sample | helm images get --raw - -o yaml
+  helm images get --charts-dir ./charts -o yaml
+  helm images get --charts-dir ./charts --platform linux/arm64
 
 Flags:
       --from-release         enable the flag to fetch the images from release instead (disabled by default)
@@ -116,6 +122,7 @@ Flags:
   -l, --log-level string     log level for the plugin helm images (defaults to info) (default "info")
       --no-color             when enabled does not color encode the output
   -o, --output string        the format to which the output should be rendered to, it should be one of yaml|json|table|csv, if nothing specified it sets to default
+      --platform string      target image platform to include while generating pull commands, ex: linux/arm64
   -r, --registry strings     registry name (docker images belonging to this registry)
       --skip strings         list of resources to skip from identifying images, ex: ConfigMap=sample-configmap | configmap=sample-configmap
   -u, --unique               enable the flag if duplicates to be removed from the retrieved list (disabled by default also overrides --kind)

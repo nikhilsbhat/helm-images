@@ -50,6 +50,8 @@ func registerCommonFlags(cmd *cobra.Command) {
 		"enable the flag if duplicates to be removed from the retrieved list (disabled by default also overrides --kind)")
 	cmd.PersistentFlags().StringVarP(&images.OutputFormat, "output", "o", "",
 		"the format to which the output should be rendered to, it should be one of yaml|json|table|csv, if nothing specified it sets to default")
+	cmd.PersistentFlags().StringVarP(&images.Platform, "platform", "", "",
+		"target image platform to include while generating pull commands, ex: linux/arm64")
 	cmd.PersistentFlags().BoolVarP(&images.NoColor, "no-color", "", false,
 		"when enabled does not color encode the output")
 	cmd.PersistentFlags().BoolVarP(&images.Quiet, "quiet", "q", false,
