@@ -159,7 +159,7 @@ func setCLIClient(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-//nolint:goerr113,err113
+//nolint:err113
 func validateAndSetArgs(cmd *cobra.Command, args []string) error {
 	logger := logrus.New()
 	logger.SetLevel(pkg.GetLoglevel(images.LogLevel))

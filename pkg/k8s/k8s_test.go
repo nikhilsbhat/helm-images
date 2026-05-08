@@ -59,3 +59,24 @@ config:
 		}, valueFound)
 	})
 }
+
+func TestPrometheusGetWithoutThanos(t *testing.T) {
+	log := logrus.New()
+	prometheusManifest := `kind: Prometheus
+metadata:
+  name: myrelease-kube-prometheus-prometheus
+spec:
+  image: quay.io/prometheus/prometheus:v3.11.3
+  containers:
+    - name: config-reloader
+      image: quay.io/prometheus-operator/prometheus-config-reloader:v0.91.0
+`
+
+	images, err := k8s.NewPrometheus().Get(prometheusManifest, "", log)
+	require.NoError(t, err)
+	assert.Equal(t, "myrelease-kube-prometheus-prometheus", images.Name)
+	assert.ElementsMatch(t, []string{
+		"quay.io/prometheus/prometheus:v3.11.3",
+		"quay.io/prometheus-operator/prometheus-config-reloader:v0.91.0",
+	}, images.Image)
+}

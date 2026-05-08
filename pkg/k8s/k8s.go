@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
-	crossplaneV1 "github.com/crossplane/crossplane/apis/pkg/v1"
 	"github.com/ghodss/yaml"
 	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
 	"github.com/nikhilsbhat/common/content"
@@ -59,6 +58,14 @@ type (
 	containers   struct {
 		containers []coreV1.Container
 	}
+	crossPlanePackage struct {
+		Metadata struct {
+			Name string `json:"name,omitempty" yaml:"name,omitempty"`
+		} `json:"metadata" yaml:"metadata"`
+		Spec struct {
+			Package string `json:"package,omitempty" yaml:"package,omitempty"`
+		} `json:"spec" yaml:"spec"`
+	}
 	AlertManager            monitoringV1.Alertmanager
 	Prometheus              monitoringV1.Prometheus
 	ThanosRuler             monitoringV1.ThanosRuler
@@ -66,9 +73,9 @@ type (
 	Thanos                  thanosAlphaV1.Thanos
 	ThanosReceiver          thanosAlphaV1.Receiver
 	ConfigMap               coreV1.ConfigMap
-	CrossPlaneProvider      crossplaneV1.Provider
-	CrossPlaneConfiguration crossplaneV1.Configuration
-	CrossPlaneFunction      crossplaneV1.Function
+	CrossPlaneProvider      crossPlanePackage
+	CrossPlaneConfiguration crossPlanePackage
+	CrossPlaneFunction      crossPlanePackage
 )
 
 // KindInterface implements method that identifies the type of kubernetes workloads.
@@ -281,7 +288,7 @@ func (dep *AlertManager) Get(dataMap string, _ string, _ *logrus.Logger) (*Image
 	images := &Image{
 		Kind:  monitoringV1.AlertmanagersKind,
 		Name:  dep.Name,
-		Image: []string{*dep.Spec.Image},
+		Image: appendStringPtr(nil, dep.Spec.Image),
 	}
 
 	return images, nil
@@ -298,7 +305,11 @@ func (dep *Prometheus) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, 
 	depContainers := containers{append(dep.Spec.Containers, dep.Spec.InitContainers...)}
 
 	imageNames = append(imageNames, depContainers.getImages()...)
-	imageNames = append(imageNames, *dep.Spec.Image, *dep.Spec.Thanos.Image)
+	imageNames = appendStringPtr(imageNames, dep.Spec.Image)
+
+	if dep.Spec.Thanos != nil {
+		imageNames = appendStringPtr(imageNames, dep.Spec.Thanos.Image)
+	}
 
 	images := &Image{
 		Kind:  monitoringV1.PrometheusesKind,
@@ -479,7 +490,7 @@ func (dep *CrossPlaneProvider) Get(dataMap string, _ string, _ *logrus.Logger) (
 
 	images := &Image{
 		Kind:  KindCrossPlaneProvider,
-		Name:  dep.Name,
+		Name:  dep.Metadata.Name,
 		Image: []string{dep.Spec.Package},
 	}
 
@@ -494,7 +505,7 @@ func (dep *CrossPlaneConfiguration) Get(dataMap string, _ string, _ *logrus.Logg
 
 	images := &Image{
 		Kind:  KindCrossPlaneConfiguration,
-		Name:  dep.Name,
+		Name:  dep.Metadata.Name,
 		Image: []string{dep.Spec.Package},
 	}
 
@@ -509,7 +520,7 @@ func (dep *CrossPlaneFunction) Get(dataMap string, _ string, _ *logrus.Logger) (
 
 	images := &Image{
 		Kind:  KindCrossPlaneFunction,
-		Name:  dep.Name,
+		Name:  dep.Metadata.Name,
 		Image: []string{dep.Spec.Package},
 	}
 
@@ -714,4 +725,12 @@ func imageMatch(imageRegex, imageString string) (bool, error) {
 	}
 
 	return regex.MatchString(imageString), nil
+}
+
+func appendStringPtr(values []string, ptr *string) []string {
+	if ptr == nil {
+		return values
+	}
+
+	return append(values, *ptr)
 }

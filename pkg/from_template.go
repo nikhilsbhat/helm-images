@@ -72,17 +72,13 @@ func (image *Images) getChartFromTemplate(ctx context.Context) ([]byte, error) {
 	image.log.Debugf("running following command to render the helm template: %s", cmd.String())
 	output, err := cmd.Output()
 
-	var exitErr *exec.ExitError
-
-	if errors.As(err, &exitErr) {
+	if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 		image.log.Errorf("rendering template for release: '%s' errored with %v", image.release, err)
 
 		return nil, fmt.Errorf("%w: %s", exitErr, exitErr.Stderr)
 	}
 
-	var pathErr *fs.PathError
-
-	if errors.As(err, &pathErr) {
+	if pathErr, ok := errors.AsType[*fs.PathError](err); ok {
 		image.log.Error("locating helm cli errored with", err)
 
 		return nil, fmt.Errorf("%w: %s", pathErr, pathErr.Path)
