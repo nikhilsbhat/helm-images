@@ -80,3 +80,54 @@ spec:
 		"quay.io/prometheus-operator/prometheus-config-reloader:v0.91.0",
 	}, images.Image)
 }
+
+func TestHelmChartConfigGet(t *testing.T) {
+	log := logrus.New()
+	helmChartConfigManifest := `apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    deployment:
+      kind: DaemonSet
+      additionalContainers:
+        - name: nxlog
+          image: docker.io/nxlog/nxlog-ce:3.2.2329
+          imagePullPolicy: IfNotPresent
+      initContainers:
+        - name: setup
+          image: busybox:1.36.1
+    config:
+      sidecar:
+        image: ghcr.io/example/sidecar:v1.0.0
+`
+
+	images, err := k8s.NewHelmChartConfig().Get(helmChartConfigManifest, pkg.ConfigMapImageRegex, log)
+	require.NoError(t, err)
+	assert.Equal(t, k8s.KindHelmChartConfig, images.Kind)
+	assert.Equal(t, "traefik", images.Name)
+	assert.ElementsMatch(t, []string{
+		"docker.io/nxlog/nxlog-ce:3.2.2329",
+		"busybox:1.36.1",
+		"ghcr.io/example/sidecar:v1.0.0",
+	}, images.Image)
+}
+
+func TestHelmChartConfigGetWithoutImages(t *testing.T) {
+	log := logrus.New()
+	helmChartConfigManifest := `apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+spec:
+  valuesContent: |-
+    deployment:
+      kind: DaemonSet
+`
+
+	images, err := k8s.NewHelmChartConfig().Get(helmChartConfigManifest, pkg.ConfigMapImageRegex, log)
+	require.NoError(t, err)
+	assert.Equal(t, &k8s.Image{}, images)
+}

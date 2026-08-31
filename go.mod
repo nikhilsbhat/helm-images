@@ -6,6 +6,7 @@ require (
 	github.com/banzaicloud/thanos-operator/pkg/sdk v0.3.7
 	github.com/ghodss/yaml v1.0.0
 	github.com/grafana-operator/grafana-operator v1.4.1-0.20230402103704-6c9d72512d5a
+	github.com/k3s-io/helm-controller v0.17.8
 	github.com/nikhilsbhat/common v0.0.6-0.20240713050418-5c265122cc54
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.91.0
 	github.com/sirupsen/logrus v1.9.4
@@ -113,10 +114,8 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.51.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/crypto v0.52.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect

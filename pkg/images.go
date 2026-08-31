@@ -259,6 +259,8 @@ func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Imag
 		img, err = k8s.NewPod().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindConfigMap:
 		img, err = k8s.NewConfigMap().Get(kubeKindTemplate, image.ConfigMapImageRegex, image.log)
+	case k8s.KindHelmChartConfig:
+		img, err = k8s.NewHelmChartConfig().Get(kubeKindTemplate, image.ConfigMapImageRegex, image.log)
 	case k8s.KindCronJob:
 		img, err = k8s.NewCronjob().Get(kubeKindTemplate, "", image.log)
 	case k8s.KindJob:
@@ -299,7 +301,7 @@ func (image *Images) GetImage(currentKind, kubeKindTemplate string) ([]*k8s.Imag
 		return nil, err
 	}
 
-	if currentKind == k8s.KindConfigMap && reflect.DeepEqual(img, &k8s.Image{}) {
+	if (currentKind == k8s.KindConfigMap || currentKind == k8s.KindHelmChartConfig) && reflect.DeepEqual(img, &k8s.Image{}) {
 		return nil, nil
 	}
 

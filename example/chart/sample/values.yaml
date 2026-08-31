@@ -98,3 +98,7 @@ job:
 
 pod:
   enabled: true
+
+log:
+  images:
+    nxlog: docker.io/nxlog/nxlog-ce:3.2.2329

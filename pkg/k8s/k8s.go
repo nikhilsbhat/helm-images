@@ -10,6 +10,7 @@ import (
 	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
 	"github.com/ghodss/yaml"
 	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
+	helmCattleV1 "github.com/k3s-io/helm-controller/pkg/apis/helm.cattle.io/v1"
 	"github.com/nikhilsbhat/common/content"
 	imgErrors "github.com/nikhilsbhat/helm-images/pkg/errors"
 	monitoringV1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -32,6 +33,7 @@ const (
 	KindThanos                  = "Thanos"
 	KindThanosReceiver          = "Receiver"
 	KindConfigMap               = "ConfigMap"
+	KindHelmChartConfig         = "HelmChartConfig"
 	KindCrossPlaneProvider      = "Provider"
 	KindCrossPlaneConfiguration = "Configuration"
 	KindCrossPlaneFunction      = "Function"
@@ -73,6 +75,7 @@ type (
 	Thanos                  thanosAlphaV1.Thanos
 	ThanosReceiver          thanosAlphaV1.Receiver
 	ConfigMap               coreV1.ConfigMap
+	HelmChartConfig         helmCattleV1.HelmChartConfig
 	CrossPlaneProvider      crossPlanePackage
 	CrossPlaneConfiguration crossPlanePackage
 	CrossPlaneFunction      crossPlanePackage
@@ -483,6 +486,38 @@ func (dep *ConfigMap) Get(dataMap string, imageRegex string, log *logrus.Logger)
 	return images, nil
 }
 
+func (dep *HelmChartConfig) Get(dataMap string, imageRegex string, log *logrus.Logger) (*Image, error) {
+	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
+		return nil, err
+	}
+
+	images := &Image{
+		Kind:  KindHelmChartConfig,
+		Name:  dep.Name,
+		Image: make([]string, 0),
+	}
+
+	if dep.Spec.ValuesContent == "" {
+		return &Image{}, nil
+	}
+
+	var valuesContent map[string]any
+	if err := yaml.Unmarshal([]byte(dep.Spec.ValuesContent), &valuesContent); err != nil {
+		log.Errorf("deserializing valuesContent of helmchartconfig '%s' errored with '%s'", dep.Name, err.Error())
+
+		return &Image{}, nil
+	}
+
+	valuesFound, found := GetImage(valuesContent, "valuesContent", imageRegex, log)
+	if !found {
+		return &Image{}, nil
+	}
+
+	images.Image = append(images.Image, valuesFound...)
+
+	return images, nil
+}
+
 // Get identifies images from CrossPlaneProvider.
 func (dep *CrossPlaneProvider) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) {
 	if err := yaml.Unmarshal([]byte(dataMap), &dep); err != nil {
@@ -612,6 +647,10 @@ func NewConfigMap() ImagesInterface {
 	return &ConfigMap{}
 }
 
+func NewHelmChartConfig() ImagesInterface {
+	return &HelmChartConfig{}
+}
+
 // NewKind returns new instance of Kind.
 func NewKind() KindInterface {
 	return &Kind{}
@@ -627,7 +666,7 @@ func SupportedKinds() []string {
 		KindDeployment, KindStatefulSet, KindDaemonSet,
 		KindCronJob, KindJob, KindReplicaSet, KindPod,
 		monitoringV1.AlertmanagersKind, monitoringV1.PrometheusesKind, monitoringV1.ThanosRulerKind,
-		KindGrafana, KindThanos, KindThanosReceiver, KindConfigMap,
+		KindGrafana, KindThanos, KindThanosReceiver, KindConfigMap, KindHelmChartConfig,
 		KindCrossPlaneProvider, KindCrossPlaneConfiguration, KindCrossPlaneFunction,
 	}
 

@@ -1,0 +1,43 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: sample-helm-chart-config
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    deployment:
+      additionalContainers:
+        - name: nxlog
+          image: docker.io/nxlog/nxlog-ce:3.2.2329
+          imagePullPolicy: IfNotPresent
+      initContainers:
+        - name: setup
+          image: busybox:1.36.1
+    config:
+      sidecar:
+        image: ghcr.io/example/sidecar:v1.0.0
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    deployment:
+      kind: DaemonSet
+      additionalContainers:
+        - name: nxlog
+          image: {{ tpl .Values.log.images.nxlog . | replace "//" "/" }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: "PUID"
+              value: "65532"
+            - name: "GUID"
+              value: "65532"
+          volumeMounts:
+            - name: fifo-logs
+              mountPath: /logs
+            - name: traefik-nxlog-config
+              mountPath: /etc/nxlog/nxlog.conf
+              subPath: nxlog.conf

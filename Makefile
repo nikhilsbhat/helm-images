@@ -12,6 +12,10 @@ DATE?=$(shell date)
 PlATFORM?=$(shell go env GOOS)
 ARCHITECTURE?=$(shell go env GOARCH)
 GOVERSION?=$(shell go version | awk '{printf $$3}')
+HELM_PLUGINS_DIR?=$(shell helm env HELM_PLUGINS)
+HELM_PLUGIN_PATH=$(HELM_PLUGINS_DIR)/$(APP_NAME)
+HELM_INSTALL_PATH=$(HELM_PLUGIN_PATH)/bin
+TEST_FILES?=$(shell go list ./... | grep -v /vendor/ | grep -v examples)
 BUILD_WITH_FLAGS="-s -w -X 'github.com/nikhilsbhat/helm-images/version.Version=${VERSION}' -X 'github.com/nikhilsbhat/helm-images/version.Env=${BUILD_ENVIRONMENT}' -X 'github.com/nikhilsbhat/helm-images/version.BuildDate=${DATE}' -X 'github.com/nikhilsbhat/helm-images/version.Revision=${REVISION}' -X 'github.com/nikhilsbhat/helm-images/version.Platform=${PlATFORM}/${ARCHITECTURE}' -X 'github.com/nikhilsbhat/helm-images/version.GoVersion=${GOVERSION}'"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -36,7 +40,7 @@ local/check: local/fmt ## Loads all the dependencies to vendor directory
 	@go mod tidy
 
 local/build: local/check ## Generates the artifact with the help of 'go build'
-	@go build -o $(APP_NAME) -ldflags="-s -w"
+	@go build -o $(APP_NAME)_v$(VERSION) -ldflags="-s -w"
 
 local/snapshot: local/check ## Generates the artifact with the help of 'go build'
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} goreleaser build --snapshot --clean
@@ -49,6 +53,14 @@ local/run: local/build ## Generates the artifact and start the service in the cu
 local/deploy: local/build ## Deploys a locally built helm plugins
 	@rm -rf ${HOME}/Library/helm/plugins/helm-images/bin/helm-images
 	@cp helm-images ${HOME}/Library/helm/plugins/helm-images/bin/helm-images
+
+local/install: local/build ## Installs helm plugin locally
+	@mkdir -p $(HELM_INSTALL_PATH)
+	@cp plugin.yaml install-binary.sh $(HELM_PLUGIN_PATH)
+	@rm -f $(HELM_INSTALL_PATH)/$(APP_NAME)
+	@cp $(APP_NAME)_v$(VERSION) $(HELM_INSTALL_PATH)/$(APP_NAME)
+	@chmod +x $(HELM_INSTALL_PATH)/$(APP_NAME)
+	@echo "installed $(APP_NAME) to $(HELM_PLUGIN_PATH)"
 
 publish: local/check ## Builds and publishes the app
 	GOVERSION=${GOVERSION} BUILD_ENVIRONMENT=${BUILD_ENVIRONMENT} PLUGIN_PATH=${APP_DIR} goreleaser release --clean
@@ -77,4 +89,4 @@ generate/document: ## generates cli documents using 'github.com/spf13/cobra/doc'
 	@go generate github.com/nikhilsbhat/helm-images/docs
 
 test: ## runs test cases
-	@go test ./... -mod=vendor -coverprofile cover.out && go tool cover -html=cover.out -o cover.html && open cover.html
+	@time go test $(TEST_FILES) -mod=vendor -coverprofile cover.out && go tool cover -html=cover.out -o cover.html && open cover.html
