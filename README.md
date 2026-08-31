@@ -1,7 +1,5 @@
 # Helm Images
 
-
-[![Go Report Card](https://goreportcard.com/badge/github.com/nikhilsbhat/helm-images)](https://goreportcard.com/report/github.com/nikhilsbhat/helm-images) 
 [![shields](https://img.shields.io/badge/license-MIT-blue)](https://github.com/nikhilsbhat/helm-images/blob/master/LICENSE) 
 [![shields](https://godoc.org/github.com/nikhilsbhat/helm-images?status.svg)](https://godoc.org/github.com/nikhilsbhat/helm-images)
 [![shields](https://img.shields.io/github/v/tag/nikhilsbhat/helm-images.svg)](https://github.com/nikhilsbhat/helm-images/tags)

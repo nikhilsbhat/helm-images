@@ -34,7 +34,7 @@ builds:
     binary: '{{ .ProjectName }}'
 
 archives:
-  - format: tar.gz
+  - formats: ["tar.gz"]
     name_template: >-
       {{- .ProjectName }}_
       {{- .Version }}_
@@ -49,7 +49,7 @@ archives:
       - install-binary.sh
 
 snapshot:
-  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Runtime.Goos }}_{{ .Runtime.Goarch }}"
+  version_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Runtime.Goos }}_{{ .Runtime.Goarch }}"
 
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
