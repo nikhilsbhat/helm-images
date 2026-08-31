@@ -20,7 +20,9 @@ lives: '3'
 config:
   image: 'ghcr.io/example/config:v2.3.0'
   testConfig:
-    image: 'ghcr.io/example/testConfig:v2.3.0'`
+    image: 'ghcr.io/example/testconfig:v2.3.0'
+documentation:
+  image: 'this string mentions image but is not a container image'`
 
 	jsonData := `{
       "prometheusImage": "ghcr.io/prometheus/prom:v2.0.0",
@@ -41,7 +43,7 @@ config:
 		valueFound, _ := k8s.GetImage(valueMap, "image", pkg.ConfigMapImageRegex, log)
 		assert.ElementsMatch(t, []string{
 			"ghcr.io/example/config:v2.3.0",
-			"ghcr.io/example/testConfig:v2.3.0",
+			"ghcr.io/example/testconfig:v2.3.0",
 			"ghcr.io/example/sample:v2.2.0",
 		}, valueFound)
 	})
@@ -102,6 +104,8 @@ spec:
     config:
       sidecar:
         image: ghcr.io/example/sidecar:v1.0.0
+      note:
+        image: this is a note about image settings
 `
 
 	images, err := k8s.NewHelmChartConfig().Get(helmChartConfigManifest, pkg.ConfigMapImageRegex, log)
@@ -130,4 +134,21 @@ spec:
 	images, err := k8s.NewHelmChartConfig().Get(helmChartConfigManifest, pkg.ConfigMapImageRegex, log)
 	require.NoError(t, err)
 	assert.Equal(t, &k8s.Image{}, images)
+}
+
+func TestConfigMapGetSkipsInvalidImageStrings(t *testing.T) {
+	log := logrus.New()
+	configMapManifest := `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sample-config
+data:
+  image: ""
+  image-note: this is not a container image
+  image-reference: ghcr.io/example/config:v2.3.0
+`
+
+	images, err := k8s.NewConfigMap().Get(configMapManifest, pkg.ConfigMapImageRegex, log)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"ghcr.io/example/config:v2.3.0"}, images.Image)
 }

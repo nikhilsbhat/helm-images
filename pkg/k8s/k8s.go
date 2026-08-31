@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"maps"
 	"regexp"
+	"sort"
 	"strings"
 
 	thanosAlphaV1 "github.com/banzaicloud/thanos-operator/pkg/sdk/api/v1alpha1"
+	"github.com/distribution/reference"
 	"github.com/ghodss/yaml"
 	grafanaBetaV1 "github.com/grafana-operator/grafana-operator/api/v1beta1"
 	helmCattleV1 "github.com/k3s-io/helm-controller/pkg/apis/helm.cattle.io/v1"
@@ -474,7 +476,9 @@ func (dep *ConfigMap) Get(dataMap string, imageRegex string, log *logrus.Logger)
 			}
 
 			if imageFound {
-				images.Image = append(images.Image, value)
+				if isImageReference(value) {
+					images.Image = append(images.Image, value)
+				}
 			}
 		}
 	}
@@ -482,6 +486,8 @@ func (dep *ConfigMap) Get(dataMap string, imageRegex string, log *logrus.Logger)
 	if len(images.Image) == 0 {
 		return &Image{}, nil
 	}
+
+	sort.Strings(images.Image)
 
 	return images, nil
 }
@@ -514,6 +520,7 @@ func (dep *HelmChartConfig) Get(dataMap string, imageRegex string, log *logrus.L
 	}
 
 	images.Image = append(images.Image, valuesFound...)
+	sort.Strings(images.Image)
 
 	return images, nil
 }
@@ -711,8 +718,10 @@ func GetImage(data map[string]any, key, regex string, log *logrus.Logger) (value
 			log.Debugf("found image '%s' for regex '%s'", dataKey, regex)
 
 			if strValue, ok := dataValue.(string); ok && len(strValue) > 0 {
-				values = append(values, strValue)
-				valuesFound = true
+				if isImageReference(strValue) {
+					values = append(values, strValue)
+					valuesFound = true
+				}
 			}
 		}
 
@@ -765,6 +774,12 @@ func imageMatch(imageRegex, imageString string) (bool, error) {
 	}
 
 	return regex.MatchString(imageString), nil
+}
+
+func isImageReference(value string) bool {
+	_, err := reference.ParseNormalizedNamed(strings.TrimSpace(value))
+
+	return err == nil
 }
 
 func appendStringPtr(values []string, ptr *string) []string {

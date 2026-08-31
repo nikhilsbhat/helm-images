@@ -4,6 +4,7 @@ go 1.26.0
 
 require (
 	github.com/banzaicloud/thanos-operator/pkg/sdk v0.3.7
+	github.com/distribution/reference v0.6.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/grafana-operator/grafana-operator v1.4.1-0.20230402103704-6c9d72512d5a
 	github.com/k3s-io/helm-controller v0.17.8

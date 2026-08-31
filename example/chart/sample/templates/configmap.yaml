@@ -81,3 +81,6 @@ metadata:
 data:
   test.yml: |
     foo_image_bar: SHOLD_NOT_PRINT_THIS
+    documentation:
+      image: 'this string mentions image but is not a container image'
+      data: 'this image string mentions image but is not a container image'
