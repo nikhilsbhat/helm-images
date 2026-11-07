@@ -166,6 +166,7 @@ func (dep *Deployments) Get(dataMap string, _ string, _ *logrus.Logger) (*Image,
 	}
 
 	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+	images.Image = append(images.Image, getVolumeImages(dep.Spec.Template.Spec.Volumes)...)
 
 	return images, nil
 }
@@ -185,6 +186,7 @@ func (dep *StatefulSets) Get(dataMap string, _ string, _ *logrus.Logger) (*Image
 	}
 
 	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+	images.Image = append(images.Image, getVolumeImages(dep.Spec.Template.Spec.Volumes)...)
 
 	return images, nil
 }
@@ -204,6 +206,7 @@ func (dep *DaemonSets) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, 
 	}
 
 	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+	images.Image = append(images.Image, getVolumeImages(dep.Spec.Template.Spec.Volumes)...)
 
 	return images, nil
 }
@@ -224,6 +227,7 @@ func (dep *CronJob) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, err
 	}
 
 	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+	images.Image = append(images.Image, getVolumeImages(dep.Spec.JobTemplate.Spec.Template.Spec.Volumes)...)
 
 	return images, nil
 }
@@ -243,6 +247,7 @@ func (dep *Job) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) 
 	}
 
 	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+	images.Image = append(images.Image, getVolumeImages(dep.Spec.Template.Spec.Volumes)...)
 
 	return images, nil
 }
@@ -262,6 +267,7 @@ func (dep *ReplicaSets) Get(dataMap string, _ string, _ *logrus.Logger) (*Image,
 	}
 
 	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+	images.Image = append(images.Image, getVolumeImages(dep.Spec.Template.Spec.Volumes)...)
 
 	return images, nil
 }
@@ -281,6 +287,7 @@ func (dep *Pod) Get(dataMap string, _ string, _ *logrus.Logger) (*Image, error) 
 	}
 
 	images.Image = append(images.Image, depContainers.getImagesFromArgs()...)
+	images.Image = append(images.Image, getVolumeImages(dep.Spec.Volumes)...)
 
 	return images, nil
 }
@@ -691,6 +698,18 @@ func (cont containers) getImagesFromArgs() []string {
 			if len(keyValue) == 2 && funk.Contains(imagesFlags, keyValue[0]) {
 				images = append(images, keyValue[1])
 			}
+		}
+	}
+
+	return images
+}
+
+func getVolumeImages(volumes []coreV1.Volume) []string {
+	var images []string
+
+	for _, volume := range volumes {
+		if volume.Image != nil && volume.Image.Reference != "" {
+			images = append(images, volume.Image.Reference)
 		}
 	}
 

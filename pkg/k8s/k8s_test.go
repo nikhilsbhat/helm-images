@@ -2,6 +2,7 @@ package k8s_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/ghodss/yaml"
@@ -11,6 +12,76 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestWorkloadImageVolumes(t *testing.T) {
+	const podSpec = `containers:
+  - name: app
+    image: nginx:1.14.2
+    args:
+      - --acme-http01-solver-image=quay.io/example/solver:v1
+initContainers:
+  - name: init
+    image: busybox:1.36.1
+volumes:
+  - name: models
+    image:
+      pullPolicy: IfNotPresent
+      reference: my.registry/my-model:1.0.0
+  - name: digest
+    image:
+      reference: my.registry/data@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  - name: scratch
+    emptyDir: {}
+  - name: config
+    configMap:
+      name: config
+  - name: empty-image
+    image: {}
+`
+	tests := []struct {
+		kind   string
+		prefix string
+		indent int
+	}{
+		{kind: k8s.KindPod, prefix: "spec:\n", indent: 2},
+		{kind: k8s.KindDeployment, prefix: "spec:\n  template:\n    spec:\n", indent: 6},
+		{kind: k8s.KindStatefulSet, prefix: "spec:\n  template:\n    spec:\n", indent: 6},
+		{kind: k8s.KindDaemonSet, prefix: "spec:\n  template:\n    spec:\n", indent: 6},
+		{kind: k8s.KindReplicaSet, prefix: "spec:\n  template:\n    spec:\n", indent: 6},
+		{kind: k8s.KindJob, prefix: "spec:\n  template:\n    spec:\n", indent: 6},
+		{kind: k8s.KindCronJob, prefix: "spec:\n  jobTemplate:\n    spec:\n      template:\n        spec:\n", indent: 10},
+	}
+
+	for _, test := range tests {
+		t.Run(test.kind, func(t *testing.T) {
+			indent := strings.Repeat(" ", test.indent)
+			manifest := "kind: " + test.kind + "\nmetadata:\n  name: image-volumes\n" + test.prefix +
+				indent + strings.ReplaceAll(strings.TrimSuffix(podSpec, "\n"), "\n", "\n"+indent) + "\n"
+
+			images, err := (&pkg.Images{}).GetImage(test.kind, manifest)
+			require.NoError(t, err)
+			require.Len(t, images, 1)
+			assert.Equal(t, test.kind, images[0].Kind)
+			assert.Equal(t, "image-volumes", images[0].Name)
+			assert.Equal(t, []string{
+				"nginx:1.14.2",
+				"busybox:1.36.1",
+				"quay.io/example/solver:v1",
+				"my.registry/my-model:1.0.0",
+				"my.registry/data@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			}, images[0].Image)
+		})
+	}
+}
+
+func TestPodWithoutImageVolumes(t *testing.T) {
+	for _, volumes := range []string{"", "  volumes:\n    - name: scratch\n      emptyDir: {}\n"} {
+		manifest := "kind: Pod\nmetadata:\n  name: app\nspec:\n  containers:\n    - name: app\n      image: nginx:1.14.2\n" + volumes
+		images, err := k8s.NewPod().Get(manifest, "", logrus.New())
+		require.NoError(t, err)
+		assert.Equal(t, []string{"nginx:1.14.2"}, images.Image)
+	}
+}
 
 func TestGetVal(t *testing.T) {
 	log := logrus.New()

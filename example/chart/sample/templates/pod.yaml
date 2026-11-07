@@ -9,8 +9,16 @@ spec:
       image: nginx:1.14.2
       ports:
         - containerPort: 80
+      volumeMounts:
+        - name: models
+          mountPath: /models
     - name: nginx2
       image: nginx:1.14.2
       ports:
         - containerPort: 80
+  volumes:
+    - name: models
+      image:
+        reference: my.registry/my-model:1.0.0
+        pullPolicy: IfNotPresent
   {{- end }}
